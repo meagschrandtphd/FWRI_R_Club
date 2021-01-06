@@ -1,0 +1,125 @@
+---
+title: "Version Control (w/DevOps & RStudio focus)"
+author: "M Schrandt"
+date: "11/4/2020"
+output: 
+  html_document:
+    theme: cerulean
+---
+
+## What is Version Control?
+
+Version control is a way to keep track of different versions/updates of your files. You can explore the changes you've made, whether it's code, notes, etc. It tracks line by line changes every time you "commit" (more on this term later) them. 
+
+You've probably already been doing some sort of version control if you label your files with dates or "v1" or something similar to track your progress. Version control is similar, but does this in a tidy manner so you can have access to all changes and all versions. As long as you have "committed" your changes, you should never have to worry about having to start over or breaking something and not going back to a working version.
+
+The version control software is one piece of the puzzle, the other is backing up your work. This is beneficial to you and your collaborators, and is now more inclusive with online/cloud-based platforms.
+
+There are multiple version control software options and multiple online platform options. One of the most widely used version control systems is Git <https://git-scm.com/>, and one of it's accompanying online development platforms is GitHub <https://git-scm.com/>. 
+
+Here at work, we have access to Microsoft Azure DevOps, and at the present time, we are encouraged to use DevOps. It is linked/accessed with Microsoft Office accounts and is a cloud-based development platform. Your work on Azure DevOps is only visible/discoverable if you set the project to "public" or by people with whom you share the project link. Also keep in mind that if you leave the organization, your work on here will be lost (like OneDrive), unless you have given access to someone else to clone (copy) to their account before your account is deactivated.
+
+Fun bit of info: GitHub is owned by Microsoft Corporation. You can clone repositories from GitHub to DevOps. 
+
+Today, we will focus on the general version control workflow, which is similar among version control systems. Then we'll demo setting up a DevOps workflow.
+
+### Benefits of Using Version Control (not an exhaustive list!)
+
++ General
+    + all files necessary can be held together
+    + people can add in their code, graphs, documents, etc.
+    + each file has a history that can be explored to see changes
+    + access every file, branch, iteration of a project
+    + code review, comment, suggest changes
+    + online platform allows access from anywhere (no central connection needed)
++ Personal Projects
+    + keep track of work
+    + easily navigate among versions
+    + keep online back-up
++ Collaborative Projects
+    + assign tasks to different users
+    + ask certain users to review code
+    + multiple contributors to source code
+
+## Version Control Resources
++ GitHub Guides' Git Handbook <https://guides.github.com/introduction/git-handbook/>
++ Coding Club Intro to GitHub <https://ourcodingclub.github.io/tutorials/git/>
++ Jenny Bryan's Happy Git and GitHub for the useR <https://happygitwithr.com/>
++ Jenny Bryan's "Excuse me, do you have a moment to talk about version control?" paper <https://peerj.com/preprints/3159v2/>
++ There are also online tutorials and individual development platforms have their own resources
+
+## Vocabulary and Workflow
+
+### What's a repository?
+
+You can think of a repository as a main project or "master folder". Everything associated with or needed by a specific project should be kept in the repository for that project. You can keep all files individually in the repository or have sub-folders within the repository to further organize.
+
+You will have 2 copies of your repository, and all the files in it:
+
+1. Local copy (on your computer)
+
+2. Online copy (GitHub, GitLab, DevOps, etc.)
+
+### Workflow
+
+Generally, all version control workflows can be summed up by "commit-pull-push".
+
+1. Commit (local)
+    + Once you save your files as usual, then you "commit" them to your local version control system (e.g., Git).
+    + The changes you've made to your repository will be saved as a version of the repository and your changes are then ready to go to your online development platform (e.g., GitHub, GitLab, DevOps).
+
+2. Pull
+    + Before you send your changes to your online platform, you should "pull" (especially true if it's a collaborative project, or if you're an individual working across multiple machines) to make sure you are incorporating your changes into the latest version.
+    + Pull makes sure you are completely up to date with the latest version of the online version of the files
+    
+3. Push (online)
+    + When you're up to date, you can "push" your changes to the online platform (e.g., GitHub, GitLab, DevOps)
+    + Now your local and online files will be the same
+    
+Each file has a history, so you won't see many files with different version numbers tacked onto the name. You'll see one file and you can explore it's history to see what changes were made and when.
+
+**You can interact with your local version control system and online platform through command-line, but we can also interact through RStudio!**
+
+## Getting Started with RStudio and Azure DevOps
++	Install R & RStudio
++	Install Git (https://git-scm.com/)
++	Set up your Azure DevOps account
+    + Go to https://azure.microsoft.com/en-us/services/devops/ and click on "Start free"
+    + Click on "Create one!" to create an account with your work computer username and password
+
+*If you are using GitHub instead of Azure DevOps, you'll still need to install Git and set up a GitHub account (both free!). See the resources above for advice on registering on GitHub and getting started.
+
+## A DevOps Demo - interacting through RStudio - see video file
+
+There is a Microsoft Word Document (2020-11-1_VersionControl_RStudio_DevOps.docs) in our RClub Microsoft Team file with detailed directions for getting started with RStudio and DevOps. You can use this as a resource to accompany the demo.
+
+Watch the demo for the following in DevOps:
+
+*Remember that R, RStudio, and Git are all installed. I have also already set up my work DevOps account.*
+
+1. Create a New Project (i.e., repository)
+
+2. "Clone" the repository to your local computer (and set up R project)
+
+3. Make your first "commit"
+
+4. Make your first "push"
+
+5. Make a change and make your second "commit"
+
+You can collaborate through DevOps as well - from a project's page you can click the "Invite" button to invite participants. We are currently limited on the number of people (5) that can be contributors. I'm not sure if we're limited on how many can view.
+    *The 5 contributors can be people without VisualStudio licenses. You could have up to 7 contributors if the other two have VisualStudio licenses. These licenses cost money so not everyone here has them; they are generally reserved for the developers scattered about our organization.*
+
+**I will be keeping in touch with Information Services and OIT about our version control recommendations. They are still developing best practices and guidelines for us. What I do know is that OIT is moving to DevOps as their version control platform of choice, so we can expect to hear something in the future.**
+
+***
+
+## FWRI R Club Announcements
+
+<span style="color:green">Our next [remote/virtual] meeting via MS Teams is **December 8, 2020 at 2 pm eastern time. Alex Ilich (USF) will present on regular expressions**.</span>
+
+I'm still looking for volunteers to present something at a meeting of your choice; please consider sharing your skills with the group. Or, if you're stuck on something and want feedback from the group, we can help!
+
+Email if you're interested in presenting or if you have a topic you'd like someone else to present.
+
+Thanks!

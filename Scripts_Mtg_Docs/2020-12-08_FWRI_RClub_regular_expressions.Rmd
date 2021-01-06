@@ -1,0 +1,351 @@
+---
+title: "Regular Expressions R-Club"
+output: html_document
+author: Original docment by Matt Jones at NCEAS, edited by Alex Ilich
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r,echo=FALSE, include=FALSE}
+options(stringsAsFactors = FALSE)
+# Fake data generation code
+set.seed(5)
+site_data <- data.frame(year = rep(seq(2000, 2009), 4))
+site_data$site <- sample(c("galveston bay", "choctawhatchee bay", "aransas bay", "copany bay"), nrow(site_data), replace = TRUE)
+site_data$subsite <- sample(c(1,2,3,4), nrow(site_data), replace=TRUE)
+site_data$temp_c <- runif(nrow(site_data), 0, 100)
+site_data$site_code <- paste(site_data$year, site_data$site, site_data$subsite, sep="-")
+site_data <- site_data[,c("site_code", "temp_c")]
+names(site_data) <- c("site_code", "temp_c")
+```
+
+# Introduction
+
+Regular expressions are a fantastic tool for filtering and even extracting information out of strings of characters such as site codes, titles, or even entire documents. 
+Regular expressions follow a custom syntax that we'll need to learn but they are worth learning because:
+
+- Regular expressions can do things other methods cannot
+- Regular expressions can be used with many other languages and tools so it's a learn-once, use-everywhere kind of tool
+
+But they're something that you only need to learn a bit of to get a lot of value out of them.
+
+# Learning Outcomes
+
+- Understand when regular expressions are appropriate
+- Have an introductory-level awareness of regular expression syntax
+- Have some experience executing and working with regular expressions in R
+
+# Lesson
+
+The `stringr` package from the `tidyverse` is useful for working with regular expressions in R
+```{r warning=FALSE, message=FALSE}
+library(stringr)
+library(dplyr)
+```
+
+Let's start off with a simple example of where simpler methods won't work and see how regular expressions can be used to get what we need done.
+Let's say we just received some data we need to analyze and we find this:
+
+```{r}
+site_data
+```
+
+
+It looks like the author of the dataset mixed the year of measurements, site code (e.g., A, CCCC, etc.), and some sub-site code (e.g., 1, 2, 3, etc.) into a single column.
+If we wanted to, for example, calculate mean temperature by site, we'd need to split these up somehow into separate columns.
+How could we go about this?
+We could start with `substr` which lets us slice a string by its indices:
+
+```{r}
+substr(site_data$site_code, 1, 4)
+substr(site_data$site_code, 5, 16)
+```
+
+But we'd quickly find that, because the number of characters in the site code varies from one to four, we can't extract just the site code. 
+These are the types of problems where regular expressions come in handy.
+
+Before we start, we're going to use the `str_view_all` function from the `stringr` package which shows a nice display of the result of executing a regular expression against our strings.
+In real use, we would use another function to actually get and work with the result.
+
+```{r message=FALSE}
+str_view_all(string = site_data$site_code, pattern = "[a-z ]+")
+site_data %>% mutate(site=str_extract(site_code, pattern = "[a-z ]+"))
+```
+
+The expression we used above, `[a-z ]+`, is equivalent to asking for the first consecutive run of the letters a-z or a space in the entire string of characters.
+This is the type of problem regular expression were created for!
+
+
+## Overview of Regular Expressions
+
+### Literal Matches
+Regular expressions can match things literally, e.g.,
+
+```{r}
+str_detect(string = "red grouper", pattern = "snapper")
+str_detect(string = "red grouper", pattern = "grouper")
+```
+
+but they also support a large set of special characters:
+
+### Special Characters
+There are also many special characters we can use  
+
+- `.` indicates any character  
+
+- `+` matches one or more times  
+
+- `*` matches 0 or more times  
+
+- `{n}` matches exactly n times  
+
+- `{n,}` matches at least n times  
+
+- `{,n}` matches at most n times  
+
+- `()` groupings  
+
+- `^` start of string  
+
+- `$` end of string  
+
+- `\\<` Beginning of a word  
+
+- `\\>` End of a word  
+
+- `[]`: Match any character in this set  
+
+- `[^]`: Match any character *not* in this set  
+
+- `\\d` digits  
+
+- `\\D` non-digits  
+
+- `\\s` whitespace  
+
+- `\\S` non-whitespace  
+
+- `\\w` any word character [A-Za-z0-9_]  
+
+- `\\W` any non-word character  
+
+- `?` optional  
+
+- `\\` escape used to indicate you are searching for one of the special characters  
+
+### Common R functions that use regular expressions
+- Base R  
+  - `grep`/`grepl` Find indices (numeric/logical) of vector elements that match the specified pattern.  
+  - `sub`/`gsub` Replace a pattern with something else  
+  - `strsplit` Split the elements of a character vector x into substrings according to the matches to substring split within them.  
+- `stringr` package  
+  - `str_detect` Find indices (logical) of vector elements that match the specified pattern. Works like grepl.  
+  - `str_match`/`str_match_all` Extract matched groups from a string  
+  - `str_replace`/`str_replace_all` Replace a pattern with something else (like sub/gsub)  
+  - `str_split`/`str_split_fixed` Split up a string into pieces (like strsplit)  
+  - `str_locate`/`str_locate_all` Finds start and end character position of a pattern within a string  
+  - `str_extract`/`str_extract_all` Extract pattern  
+  - `str_remove/str_remove_all` Remove pattern  
+  
+Notes:  
+  
+  - Base R functions have arguments in order of pattern, string whereas stringr functions have arguments in the order of string, pattern because this allows for piping.  
+  
+  - If multiple matches are found, many functions will just use the first match. In stringr the functions will the suffix "all" will act on all matches.  
+
+### Examples
+
+- The period (`.`) matches any character
+
+```{r}
+fish <- c("gag grouper", "red snapper", "sheepshead")
+str_view_all(fish, ".p")
+```
+
+- `[]`: Match any character in this set
+
+```{r}
+DNA<- c("ATGTTAGCTTAGCCTA", "ATGATGCTCA", "TTCGGTTAGCAG")
+target_seq<- "ATG[CT]"
+str_view_all(DNA, target_seq)
+str_detect(DNA, target_seq)
+grepl(target_seq,DNA)
+grep(target_seq,DNA)
+grep(target_seq,DNA, value=TRUE)
+str_locate(DNA, target_seq)
+```
+
+
+- `[^]`: Match any character *not* in this set
+
+```{r}
+str_view_all(fish, "[^aeiou]")
+```
+
+- `\\s` to match any whitespace (e.g. Space, tab, vertical tab, newline) & `\\S` to match any non-whitespace
+
+```{r}
+str_view_all(fish, "\\s")
+str_view_all(fish, "\\S")
+```
+
+- `\\d` to match any digit which is equivalent to `[0-9]` & `\\D` to match any non-digit
+
+```{r}
+str_view_all(site_data$site_code, "\\d")
+str_view_all(site_data$site_code, "\\D")
+```
+
+- `\\w` to match any word character `[A-Za-z0-9_]` & `\\W` to match any non-word character
+
+```{r}
+str_view_all(site_data$site_code, "\\w")
+str_view_all(site_data$site_code, "\\W")
+```
+
+
+- `?` to specify if a character/group of characters is optional  
+
+- `{n}` to specify how many times a character/group of characters will occur  
+
+Say we want to get just the phone numbers out of this vector but we notice that the phone numbers take on some different formats:
+
+```{r}
+contact_info<- data.frame(form_submission= c("219 733 8965", "user@usf.edu", "329-293-8753 ", "governmentemployee1@fwc.gov", "595.794.7569", "3872876718"))
+contact_info
+str_view_all(string = contact_info$form_submission, pattern = "\\d{3}[ \\.-]?\\d{3}[ \\.-]?\\d{4}")
+```
+The above regular expression matches the number parts of the phone numbers, which can be separated by zero or one space, `.`, or `-`.
+
+We could use this for example to clean responses into a common format including only digits
+```{r}
+phone_numbers<- contact_info %>% filter(str_detect(string = form_submission,pattern = "\\d{3}[ \\.-]?\\d{3}[ \\.-]?\\d{4}"))
+phone_numbers %>% mutate(formatted_num= str_remove_all(string = form_submission, pattern = "\\D")) #Remove all non-digits
+```
+
+We can use the `+` expression to find sequences of at least 1 of a match
+
+```{r}
+str_view_all(site_data$site_code, "\\d+")
+```
+
+- The `*` is zero or more matches
+
+By default the asterisk (`*`) is greedy, i.e. it always matches the longest possible string. 
+It can be used in lazy mode by adding?, i.e. `*?`.
+
+```{r}
+letters <- "abcdefghijkb"
+str_view_all(letters, "a.*b") # Greedy
+str_view_all(letters, "a.*?b") # Lazy
+```
+
+
+- `()`: Grouping
+
+One of the most powerful parts of regular expressions is grouping.
+Grouping allows us to split up our matched expressions and do more work with them.
+For example, we can create match the city and state in a set of addresses, splitting it into components:
+
+```{r}
+addresses <- c("Santa Barbara, CA", "Seattle, WA", "New York, NY")
+str_match(addresses, "([\\w\\s]+), (\\w+)")
+```
+In `str_match`, the first column is the complete match, followed by one column for each capture group. 
+
+Once we use groups, `()`, we can also use back references to work with the result.
+Back references are `\\` and a number, where `\\1` is the first thing in `()`, `\\2` is the second thing in `()`, and so on.
+
+```{r}
+addresses
+str_replace(string = addresses, pattern= "([\\w\\s]+), (\\w+)", "City: \\1, State: \\2")
+```
+
+- `|` for or
+```{r}
+fish2<- c("red grouper", "red snapper", "gray snapper", "yellowtail snapper")
+str_view_all(string = fish2, pattern = "(red|gray) snapper")
+```
+
+
+- Anchors
+Two of the most common anchors are `^` & `$` which can be used to search for things at the start and end of a string respectively
+
+```{r}
+fish3 <-c("red snapper", "red grouper", "barred blenny", "gray snapper") 
+grep(x = fish3, pattern="red", value = TRUE)
+str_view_all(string = fish3, pattern="red")
+str_view_all(string = fish3, pattern="^red")
+
+My_files<- c("Fish_pictures.png", "data1.csv", "data2.csv", "merged_csvdata.xlsx")
+str_view_all(My_files, ".csv")
+str_view_all(My_files, "\\.csv$")
+My_csvs<- My_files[str_detect(My_files, "\\.csv$")]
+My_csvs
+```
+`list.files` function supports regular expressions
+```{r eval=FALSE}
+list.files(pattern="\\.csv$")
+```
+
+- Escaping  
+Use `\\` to literally search for one of the special characters
+```{r}
+str_view_all(string = "This is a .", pattern = ".")
+str_view_all(string = "This is a .", pattern = "\\.")
+```
+
+
+- Case Sensitive
+Regular expressions are case sensitive. With base R functions, you can set `ignore.case = FALSE`. With stringr, you can put your pattern within a call to the `regex` function with `ignore_case=FALSE`  
+```{r}
+str_detect(string = "red grouper", pattern = "Grouper") #Case Sensitive
+grepl(pattern = "Grouper", x = "red grouper", ignore.case = TRUE)
+str_detect(string = tolower("red grouper"), pattern = tolower("Grouper"))
+str_detect(string = toupper("red grouper"), pattern = toupper("Grouper"))
+str_detect(string = "red grouper", pattern = regex("Grouper", ignore_case = TRUE))
+```
+
+- "all" functions  
+Generally functions only act on the first match. If you are interested in all the matches, stringr has equivalent functions with "all" as a suffix. Base R also has equivalent functions.  
+```{r}
+test_string<- "abcd efg hijk"
+
+str_replace(string = test_string, pattern = " ", replacement = "_")
+sub(pattern = " ", replacement = "_", x = test_string)
+
+str_replace_all(string = test_string, pattern = " ", replacement = "_")
+gsub(pattern = " ", replacement = "_", x = test_string)
+```
+
+
+## Finish out our example together
+
+Now that we've gone over some basics of regular expressions, let's finish our example by splitting the various components of column `site_code` into a `year`, `site`, and `sub_site` column:
+
+```{r}
+site_data
+site_data <- site_data %>% mutate(year= str_extract(site_code, "^\\d{4}"))
+head(site_data)
+site_data <- site_data %>% mutate(site= str_extract(site_code, "[A-z ]+"))
+head(site_data)
+site_data <- site_data %>% mutate(sub_site= str_extract(site_code, "\\d$"))
+site_data
+```
+By enabling perl syntax, you can also use lookarounds and conditionals  
+
+For example we could use a Lookahead `?=` to say get the word in front of bay  
+```{r}
+str_view_all(site_data$site_code, regex("[A-z ]+(?= bay)", perl=TRUE))
+```
+
+## Summary
+
+- Regular expressions are a crucial tool in the data analysis toolbox
+- Regular expressions help us solve problems we may not be otherwise able to solve
+- Regular expressions are supported in many functions in R
+
+## Resources
+https://rstudio.com/wp-content/uploads/2016/09/RegExCheatsheet.pdf  
+http://edrub.in/CheatSheets/cheatSheetStringr.pdf  
+https://stringr.tidyverse.org/articles/from-base.html

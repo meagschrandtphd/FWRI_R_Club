@@ -1,0 +1,116 @@
+---
+title: "Automating R Script & Sending Email"
+author: "M Schrandt"
+date: "5/11/2020"
+output: html_document
+---
+```{r, echo = FALSE}
+robotimage <- "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRODQ1moN5qHem8vDPJtRt3qvHgDeyhoAneFNOBZVl5ACw38Wek&usqp=CAU"
+```
+![](`r robotimage`)
+
+# Background
+
+This topic came up while the our group was putting together an annual report for certain species. We have to provide an annual summary at the end of each fiscal year. Throughout the fiscal year, however, we have to give a small report every time one of these certain species is encountered during the sampling process.
+
+Well, inevitably, what happened is the annual summary report didn't exactly match the individual reports that were prepared and sent during the year. Sometimes there was an individual report but the number of individuals didn't match, sometimes there was no individual report at all, etc.
+
+We wanted a better way to track our individual reporting process throughout the year, so we figured out a workflow that works for us. Basically, I use an R script that connects to our database and checks it for these certain species and sends me an email with the table of information for the species. Then, we use Window's Task Scheduler (but we can do this with an Addin in RStudio!) to automate the script to run daily, weekly, monthly, etc.
+
+This allows me to "keep an eye" on the database for whenever these species are entered, and we can follow-up with the boat crew to make sure the individual report is filed and that the information matches our database...and we don't have to wait to the end of the year to find any discrepancies.
+
+# Step 1: Download/Install Necessary Packages
+
+I'll demonstrate with Microsoft Outlook on Windows since we use that at our office. You'll need one package ('RDCOMClient') to work with Outlook.
+
+Then you'll need a few other packages in order to get the Addin working in RStudio to schedule your script to run automatically ('miniUI', 'shiny', 'taskscheduleR'). Once you install these packages, you will have the add-in ready at the "Addins" tab in RStudio.
+
+# Step 2: R Script to Prepare Data & Send Email
+
+We'll use some freely available data just to give you an idea of the process. Install the "dslabs" R package, available on CRAN.
+
+We will use the movielens dataset, which is a collection of user ratings for different movies.
+
+```{r LoadLibraries, echo = TRUE, message = FALSE, warning = FALSE}
+#For first time installation:
+#url <- "http://www.omegahat.net/R/bin/windows/contrib/3.5.1/RDCOMClient_0.93-0.zip"
+#install.packages(url, repos=NULL, type="binary")
+
+library(tidyverse)
+library(RDCOMClient) #to configure and send Microsoft Outlook Email
+library(xtable)      #to print table to html to include in body of Microsoft Outlook Email
+library(dslabs)      #to get our play dataset of movie ratings
+```
+
+Let's check out the first 6 rows of the movie ratings dataset
+
+```{r, echo = TRUE}
+movielens %>%
+  #movieId is the unique identifier for the movie
+  select(movieId, title, year, rating) %>%
+  head()
+```
+
+Now let's make a small table we can email ourselves, say of the top 10 movies according to their rating.
+
+```{r Get Data & Send Email, echo = TRUE, results = TRUE}
+
+# Let's get the top 20 rated movies
+MostReviews <- movielens %>%
+  group_by(movieId, title) %>%
+  summarize(Number_of_Reviews = n()) %>%
+  arrange(desc(Number_of_Reviews)) %>%
+  head(10)
+MostReviews
+```
+
+So the above table is what we want to send in an email; however, we need to get it into html format in order to include it in the body of the email.
+
+```{r PrepTable, echo = TRUE}
+# Prepare the table for printing to html for the email
+table <- print(xtable(MostReviews), type = "html", print.results=FALSE)
+```
+
+```{r SendEmail}
+## Configure the body as some text plus the table, in html format
+body <- paste0("<html>", "Here is our little table of information from today's scheduled R task on movie reviews", table, "</html>")
+
+OutApp <- COMCreate("Outlook.Application")
+## create an email 
+outMail = OutApp$CreateItem(0)
+
+## configure  email parameters
+outMail[["To"]] = "address@email.com"
+outMail[["subject"]] = "Movies with the Most Reviews"
+outMail[["HTMLbody"]] = body
+
+## send it
+outMail$Send()
+```
+
+# Step 3: Use an RStudio Add-In to Schedule R Script! 
+
+A very clever R user, Oliver (https://github.com/OliverBLMS) wrote an RStudio add-in on top of the 'taskscheduleR' package. Check out the functions of 'taskscheduleR' here: https://github.com/bnosac/taskscheduleR
+
+This add-in allows you to schedule a time for your script to automatically run. This can be daily, weekly, monthly, etc. If you need to change the timing, just repeat the steps below, as it will overwrite the previous schedule.
+
+Navigate to the "Addins" tab in your RStudo session and click "Schedule Rscripts...". Select your script and schedule it to run when you'd like - don't forget to make sure the "Date format of your locale" is correct!
+
+```{r, echo = FALSE}
+imageURL <- "https://raw.githubusercontent.com/bnosac/taskscheduleR/master/vignettes/taskscheduleR-rstudioaddin.png"
+```
+
+![](`r imageURL`)
+
+## Update June 9, 2020
+
+If you find that your task is not running and you know that the file/script exists...it might be how your date is configued when you use the Addin. The "Date format of your locale" is linked to how dates are formatted in your version of Windows.
+
+So, you might have to change two things when you're scheduling with the Addin:  
+- Additional arguments to RScript: `startdate = format(Sys.Date()+1, "%m/%d/%Y")`  
+- Change Date format of your locale to `%m/%d/%Y`, as this is the way your machine's clock might be formatted.
+
+## This is just a brief intro...
+
+There are plenty of other things to try to do like sending plots, attachments, etc. I haven't figured those out yet as a simple data table was all I needed when I started looking into this. Be creative!
+

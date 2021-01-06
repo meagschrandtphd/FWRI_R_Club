@@ -1,0 +1,176 @@
+---
+title: "Performing Operations Across Columns"
+author: "M Schrandt"
+date: "10/13/2020"
+output: html_document
+---
+
+In June 2020, dplyr 1.0.0 was made available on CRAN and with it came the new `across()` function. This makes it easy to perform the same operation(s) on multiple columns.
+
+Most of the information from this R Club document comes from Hadley Wickham's tidyverse blog post called "dplyr 1.0.0: working across columns" <https://www.tidyverse.org/blog/2020/04/dplyr-1-0-0-colwise/>
+
+A couple of additional helpful links include:  
+
+* <https://dplyr.tidyverse.org/articles/colwise.html> for dplyr's Column-wise operations vignette  
+    
+* <https://www.infoworld.com/article/3537612/dplyr-across-first-look-at-a-new-tidyverse-function.html> 
+    
+* <https://www.tidyverse.org/blog/2020/04/dplyr-1-0-0-rowwise/> for working within rows  
+
+## What's `tidyverse::dplyr::across()` for?
+
+Sometimes we'd like to perform the same operation on a set of columns. I'm thinking things like when our columns are counts for individual species, or concentrations of different chemicals, etc. But copying and pasting is prone to errors. Previously, we could get means of multiple columns with the following:
+
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+library(tidyverse, warn.conflicts = FALSE)
+```
+
+
+```{r echo = TRUE, eval = FALSE}
+df %>%
+  group_by(grp1, grp2) %>%
+  summarize(apple = mean(apples), banana = mean(bananas), carrot = mean(carrots), date = mean(dates))
+```
+
+With `across()` you can apply a transformation, function, etc. to multiple columns (variables) using the same syntax as `select()` and `rename()`:
+
+```{r eval = FALSE, include = TRUE}
+# by specifying columns, in this case, all columns from "apples" to "dates"
+df %>%
+  group_by(grp1, grp2) %>%
+  summarize(across(apples:dates, mean))
+
+# by using a function, in this case, all numeric columns will have the mean calculated
+df %>%
+  group_by(grp1, grp2) %>%
+  summarize(across(where(is.numeric), mean))
+```
+
+## Two primary arguments for `across()`:
++ `.cols` is for the columns you want to operate on. It uses tidy syntax so you can pick columns by name, position, type, function of the name, or combinations.  
++ `.fns` is a function or list of functions to apply to each column given in the previous argument. You can also use `purrr` mapping styles if you choose, but it's not necessary.
+
+```{r}
+args(across)
+```
+
+## Generic Examples
+
+`across()` gets along really well with `summarize()` (and `mutate()`) so here are some examples from H. Wickham:
+
+```{r}
+library(dplyr, warn.conflicts = FALSE)
+
+head(starwars)
+
+starwars %>% 
+  summarise(across(where(is.character), n_distinct))
+
+starwars %>% 
+  group_by(species) %>% 
+  filter(n() > 1) %>% 
+  summarise(across(c(sex, gender, homeworld), n_distinct))
+
+starwars %>% 
+  group_by(homeworld) %>% 
+  filter(n() > 1) %>% 
+  summarise(across(where(is.numeric), mean, na.rm = TRUE), n = n())
+```
+
+> You can use `across()` with multiple summary functions, any dplyr verb, and you can access the name of the column currently being processed with `cur_column()` or the group with `cur_group()`. This can be helpful when you want to apply a context-dependent transformation that you have encoded within a vector.
+
+```{r}
+# example tibble
+df <- tibble(x = 1:3, y = 3:5, z = 5:7)
+# multiply the first column by 1, the second by 10, and the third by 100
+mult <- list(x = 1, y = 10, z = 100)
+
+df %>% mutate(across(all_of(names(mult)), ~ .x * mult[[cur_column()]]))
+```
+
+## Other Examples with `across()` using the iris dataset
+
+```{r}
+head(iris)
+```
+
+```{r}
+iris %>% 
+  group_by(Species) %>%
+  summarise(across(starts_with("Sepal"), mean))
+
+# and you can use the .names argument to control the output names
+iris %>% 
+  group_by(Species) %>%
+  summarise(across(starts_with("Sepal"), mean, .names = "mean_{.col}"))
+
+```
+```{r}
+iris %>%
+  group_by(Species) %>%
+  summarise(across(starts_with("Sepal"), list(mean = mean, sd = sd)))
+```
+
+```{r}
+iris %>%
+  group_by(Species) %>%
+  summarise(across(starts_with("Sepal"), list(mean = mean, sd = sd), .names = "{.col}.{.fn}"))
+```
+
+## Why did `dplyr` update to `across()`?
+
+Previously, you may have done similar things using the functions with `_if`, `_at`, or `_all` suffixes. Don't worry - these are not deprecated and will stick around - but they will only receive critical bug fixes. The new `across()` function supersedes these previous options.
+
+`across()` was favored because:
+
+1. You can compute summaries that weren't previously possible (like working with numeric and factor vectors separately but still getting the number of rows in each group):
+```{r, eval = FALSE, include = TRUE}
+df %>%
+  group_by(grp1, grp2) %>% 
+  summarise(
+    across(where(is.numeric), mean), 
+    across(where(is.factor), nlevels),
+    n = n(), 
+  )
+```
+2. It reduces the number of functions dplyr needs to provide - and bonus, that's fewer for you to remember
+
+3. The `where()` helper unifies `_if` and `_at` semantics so you can do some interesting things like tranforming all numeric columns whose name begins with "num":
+```{r, eval = FALSE}
+across(where(is.numeric) & starts_with("num"))
+```
+4. It does not need `vars()`! Fun fact: the `_at()` functions are the only dplyr functions that use `vars()`, which makes them unuusual and harder to learn and remember.
+
+## What about `c_across()`?
+
+From H. Wickham's GitHub: https://rdrr.io/github/hadley/dplyr/src/R/across.R.
+
+`c_across()` is designed to work with `rowwise()` to make it easy to perform row-wise aggregations. It has two differences from `c()`:
+
+1. It uses tidy select semantics so you can easily select multiple variables.  See `vignette("rowwise")` for more details.
+
+2. It uses [vctrs::vec_c()] in order to give safer outputs.
+
+This post (https://community.rstudio.com/t/when-to-use-c-across-instead-of-across/74582/5) provides similar information:
+
+`c_across` is a bit more like `select()` or `c()` - it's purpose is to enable the use of tidy select syntax to select variables for row-wise transformations.
+
+Notice too that the arguments for each differ:
+```{r}
+args(c_across)
+
+args(across)
+
+```
+
+***
+
+## FWRI R Club Announcements
+
+<span style="color:green">Our next [remote/virtual] meeting via MS Teams is **November 10, 2020 at 2 pm eastern time**.</span>
+
+I'm still looking for volunteers to present something at a meeting of your choice; please consider sharing your skills with the group. Or, if you're stuck on something and want feedback from the group, we can help!
+
+Email if you're interested in presenting or if you have a topic you'd like someone else to present.
+
+Thanks!

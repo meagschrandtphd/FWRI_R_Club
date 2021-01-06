@@ -1,0 +1,174 @@
+---
+title: "A look at the package 'patchwork'"
+author: "M Schrandt"
+date: "6/9/2020"
+output: html_document
+---
+
+## What is 'patchwork'?
+
+The R package `patchwork` was developed to help combine plots into one graphic (i.e., make panel figures). It's similar to `gridExtra` and `cowplot`, but in my opinion, makes it easier to align the individual plots (think, lining up the axes appropriately when you want panels of different sizes). For me, it's also more intuitive to code the layout using mathematical operators.
+
+It was developed by Thomas Lin Pedersen and you can view the package introduction materials here:
+https://patchwork.data-imaginist.com/
+
+The package can do much more than what is presented here. We'll just go over some of the basics that I've found useful for making publication-quality panel figures.
+
+You can install `patchwork` from CRAN or GitHub. I'll use the CRAN version for today.
+
+```{r Setup, warning = FALSE, message = FALSE}
+#install patchwork if necessary
+require(patchwork)
+
+library(tidyverse)
+library(patchwork)
+```
+
+## Read in some data
+
+Let's grab some ocean buoy data from NDBC (National Data Buoy Center; https://www.ndbc.noaa.gov/). We'll use one just offshore of Apalachicola, Florida, called "SGOF1". We'll use the 2019 data file for wind measurements.
+
+```{r GetData}
+# assign the web link 
+B_SGOF1_2019 <- "https://www.ndbc.noaa.gov/view_text_file.php?filename=sgof1c2019.txt.gz&dir=data/historical/cwind/"
+
+# prep the wind data - it's not the most-friendly directly from the website
+SGOF1 <- read.table(B_SGOF1_2019, comment.char = "", colClasses = c("character", "character", "character",
+                                                                           "character", "character", "character",
+                                                                           "character", "character", "character",
+                                                                           "character")) %>%
+    #remove the first 2 rows; they're units for the header
+    slice(3:n()) %>%
+    #keep the first 7 columns
+    select(V1:V7) %>%
+    #add the data headers back in
+    rename(YY = V1, MM = V2, dd = V3, hh = V4, mm = V5, WinDir = V6, WinSp = V7) %>%
+    #convert them to proper (numeric) types
+    mutate_if(is.character, as.numeric)
+
+head(SGOF1)
+```
+
+## Make a few simple plots
+
+```{r Plot1}
+
+# line plot for median wind speed by month
+p1 <- SGOF1 %>%
+  group_by(MM) %>%
+  summarize(med = median(WinSp), .groups = 'drop') %>%
+  ggplot(aes(x = MM, y = med)) +
+  geom_point(size = 2) +
+  geom_line(size = 1.5) + 
+  scale_x_continuous(limits = c(1, 12), breaks = c(2,4,6,8,10,12)) +
+  ylab("Med. speed (m/s)") +
+  xlab("Month") +
+  ggtitle("Median Wind Speed") +
+  theme_classic()
+p1
+```
+
+```{r Plot2}
+# bar plot for maximum wind speed by month
+p2 <- SGOF1 %>%
+  group_by(MM) %>%
+  summarize(maxSp = max(WinSp), .groups = 'drop') %>%
+  ggplot() +
+  geom_bar(aes(x = MM, y = maxSp), stat = "identity", fill = "lightblue") +
+  ylab("Max. speed (m/s)") +
+  xlab("Month") +
+  ggtitle("Maximum Wind Speed") +
+  theme_classic()
+p2
+```
+
+```{r Plot3, message = FALSE}
+#histogram of wind direction
+p3 <- ggplot(SGOF1, aes(x=WinDir)) +
+  geom_histogram(binwidth = 20, fill = "darkcyan") +
+  ylab("Count") +
+  xlab("Wind direction (degrees from true north)") +
+  ggtitle("Wind Direction") +
+  theme_classic()
+p3
+
+```
+
+## Arrange the plots
+
+To place plots side-by-side, use the `+` or `|` operators.
+```{r}
+p1 + p2 + p3
+```
+
+The `|` operator provides the same panel figure.
+```{r}
+p1 | p2 | p3
+```
+
+For vertical arrangement, you can use the `/` operator or specify `plot_layout(ncol=1)`.
+```{r}
+
+p1 / p2 / p3
+
+#or specify the layout
+(p1 + p2 + p3) + plot_layout(ncol = 1)
+```
+
+You can also change the relative area of the plots with `plot_layout()`
+```{r}
+p1 / p2 / p3 + plot_layout(heights = c(1, 1, 3))
+```
+
+The `-` operator can be used for a 'subtrack' placement
+```{r}
+p1 + p2 - p3 + plot_layout(ncol=1)
+```
+
+Another way to do the same thing is with the `+` and `/` opeartors
+```{r}
+(p1 + p2) / p3  #or: (p1 | p2) / p3
+```
+
+Yet another layout:
+```{r}
+(p1 / p2) | p3
+```
+
+## Annotations
+
+You can add titles, labels, etc. with `plot_annotation()`
+```{r}
+((p1 / p2) | p3) + plot_annotation(title = "Wind Information from Apalachicola, FL 2019")
+```
+
+And you can add tags for the panels with `tag_levels()`
+```{r}
+((p1 / p2) | p3) + plot_annotation(tag_levels = "A")
+
+#you can also use tag_levels = "I" for roman numerals or "a" for lowercase letters; you can check for others in the vignette
+```
+
+## For more information . . .
+
+Although I've used `ggplot2` here to make these graphs, you can also use `patchwork` with base R plots. You can even mix and match with base R and `ggplot2` plots...and it will still line up the axes.
+
+Saving plots: you can use `ggsave()` with patchwork and you can also export plots from your 'Plots' tab in the viewer pane of RStudio.
+
+Package website: https://patchwork.data-imaginist.com/
+
+CRAN Info: https://cran.r-project.org/web/packages/patchwork/index.html
+
+PDF: https://cran.r-project.org/web/packages/patchwork/patchwork.pdf
+
+GitHub page: https://github.com/thomasp85/patchwork
+
+## FWRI R Club Announcements
+
+<span style="color:green">Our next [remote/virtual] meeting is scheduled for **July 14, 2020 at 2 pm**.</span>
+
+I'm looking for a volunteer to present something; please consider sharing your skills with the group.
+
+Email if you're interested in presenting or if you have a topic you'd like someone else to present.
+
+Thanks!
