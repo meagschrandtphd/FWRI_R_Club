@@ -7,11 +7,11 @@ output: html_document
 
 Most likely, your data are not stored in R, especially if there's a lot of it. Best data practices indicate we should store data in a relational database (e.g., SQL, MS Access, Oracle, SAS can be used like a relational database).
 
-In order to access the data and take advantage of all R has to offer (wrangling, visualizing, analyzing), you could query from your database and save as .csv files and then load into R...or you can connect R directly to your database. Connecting to the database can help with reproducibility of your work.
+In order to access the data and take advantage of all R has to offer (wrangling, visualizing, analyzing), you could query from your database and save as .csv files and then load into R...or you can connect R directly to your database, which can aid in reproducibility.
 
 Here's an RStudio resource for working with databases in R: https://db.rstudio.com/
 
-If you connect to the database, you can query your data with R language/functions or, sometimes, you can use the native language (e.g., SQL) in R and have R translate it on the backend.
+If you connect to the database, you can query your data with R language/functions or, sometimes, you can use the native language (e.g., SQL).
 
 I am by no means an expert at this, but I thought I'd share what has worked for me. My experience comes from the FIM data where we enter our data into a SQL Server database and then a copy of that SQL Server database is provided as part of a SAS library. We can connect directly to the SQL server database or we can read in the SAS library tables.
 
@@ -21,9 +21,9 @@ This option allows you to specify different connections, if you need to connect 
 
 If you have datasets in the same SQL database but in different schema, the `dbplyr::in_schema()` function becomes very helpful when pulling/querying data.
 
-This option allows you to filter/process data remotely before "collecting" it to your computer – if you can do your large query steps on the server, I recommend it before “collecting” data to your local machine. Just keep in mind that in order to query data on the server, the R code has to be translated (in the background) to SQL language (this is what the `dbplyr` package can be used for), so not all functions are able to be translated.
+This option allows you to filter/process data remotely before "collecting" it to your computer – if you can do your large query steps on the server, that might be preferred “collecting” data to your local machine. Keep in mind that in order to query data on the server, the R code has to be translated (in the background) to SQL language (this is what the `dbplyr` package can be used for), so not all functions are able to be translated.
 
-Therefore, sometimes it can be beneficial to "collect" more to R and then process using R language.
+Therefore, sometimes it can be beneficial to "collect" more to R and then process using R language if you're more comfortable in R.
 
 I use a couple of very similar pacakges. There is probably a cleaner way to do this, but I use both, even though they provide similar funcionality (`odbc` and `DBI`). Here's a blog post: https://blog.revolutionanalytics.com/2017/08/a-modern-database-interface-for-r.html
 
@@ -46,9 +46,7 @@ db_connex <- dbConnect(odbc::odbc(),
                        pwd = "[password]")
 ```
 
-And to query, you can use R functions, including the `tidyverse`
-
-The `in_schema()` function has the syntax `in_schema(schema, table)`
+To query, the `in_schema()` function has the syntax `in_schema(schema, table)` to help with tables.
 
 ```{r eval=FALSE}
 
@@ -66,7 +64,7 @@ Another thing to note is merging or joining. You can only join or merge datasets
 
 This option allows you to connect to the SQL database and then use exisiting SQL queries right from R. It uses the `dbGetQuery()` function.
 
-This option is great if you already have a collection of working SQL code and you don't want to translate it into R.
+This option is great if 1) you already have a collection of working SQL/Python code and you don't want to translate it into R and 2) you don't need to interact or change things in your exisitng SQL/Python code.
 
 The `dbGetQuery()` function is best suited for `SELECT` queries, and not necessarily data manipulation.
 
