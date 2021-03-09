@@ -368,8 +368,8 @@ pre code {
 </div>
 
 
-<p>Most likely, your data are not stored in R, especially if there’s a lot of it. Best data practices indicate we should store data in a relational database (e.g., SQL, MS Access, Oracle, SAS can be used like a relational database).</p>
-<p>In order to access the data and take advantage of all R has to offer (wrangling, visualizing, analyzing), you could query from your database and save as .csv files and then load into R…or you can connect R directly to your database, which can aid in reproducibility.</p>
+<p>Most likely, your data are not stored in R, especially if there’s a lot of it. Best data management practices indicate we should manage data in a relational database (e.g., SQL, MS Access, Oracle, SAS can be used like a relational database).</p>
+<p>To access the data and take advantage of all R has to offer (wrangling, visualizing, analyzing), you could query from your database and save as .csv files and then load into R…or you can connect R directly to your database, which can aid in reproducibility.</p>
 <p>Here’s an RStudio resource for working with databases in R: <a href="https://db.rstudio.com/" class="uri">https://db.rstudio.com/</a></p>
 <p>If you connect to the database, you can query your data with R language/functions or, sometimes, you can use the native language (e.g., SQL).</p>
 <p>I am by no means an expert at this, but I thought I’d share what has worked for me. My experience comes from the FIM data where we enter our data into a SQL Server database and then a copy of that SQL Server database is provided as part of a SAS library. We can connect directly to the SQL server database or we can read in the SAS library tables.</p>

@@ -5,9 +5,9 @@ date: "3/9/2021"
 output: html_document
 ---
 
-Most likely, your data are not stored in R, especially if there's a lot of it. Best data practices indicate we should store data in a relational database (e.g., SQL, MS Access, Oracle, SAS can be used like a relational database).
+Most likely, your data are not stored in R, especially if there's a lot of it. Best data management practices indicate we should manage data in a relational database (e.g., SQL, MS Access, Oracle, SAS can be used like a relational database).
 
-In order to access the data and take advantage of all R has to offer (wrangling, visualizing, analyzing), you could query from your database and save as .csv files and then load into R...or you can connect R directly to your database, which can aid in reproducibility.
+To access the data and take advantage of all R has to offer (wrangling, visualizing, analyzing), you could query from your database and save as .csv files and then load into R...or you can connect R directly to your database, which can aid in reproducibility.
 
 Here's an RStudio resource for working with databases in R: https://db.rstudio.com/
 
