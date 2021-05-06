@@ -1,0 +1,217 @@
+---
+title: "Semivariogram Clouds and Plots"
+author: "Michael McManus, US EPA/ORD"
+date: "4/28/2021"
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Outline
+
+The dataset we are using is from the data paper <https://esajournals.onlinelibrary.wiley.com/doi/abs/10.1890/14-1345.1> by Stallings et al. We will use salinity data collected at 80 sites from the Big Bend down to the Springs Coast of Florida.  In the code chunks below we will cover
+
+* Reading and Writing Spatial Data
+* Summarizing Distances
+* Clouds and Semivariograms
+* Randomization of Semivariograms
+
+
+## Libraries and references
+```{r, libraries}
+
+library(tidyverse)
+library(lubridate)
+library(sf)
+library(mapview)
+library(leaflet)
+library(leafpop) # for popups in mapviews
+library(gstat) # for semivariograms
+library(lattice) # for random semivariogram plots
+mapviewOptions(fgb = FALSE)
+# setwd("E:/bigbend_grass")
+
+# some spatial data analysis references
+# https://zia207.github.io/geospatial-r-github.io/semivariogram-modeling.html
+# https://pdixon.stat.iastate.edu/stat406/notes/part%203b-4.pdf
+
+# https://community.esri.com/t5/arcgis-geostatistical-analyst/quot-spatial-statistical-data-analysis-for-gis-users-quot/td-p/394418
+```
+
+## Reading in Data
+This chunk takes a data frame with geographic coordinates and converts it to a simple features (sf) object that uses the project coordinate reference system of Albers Equal Area, which has the units of meters.
+```{r reading_data, echo=FALSE}
+
+hab_1 <- read_csv("BBSG_2009-2010_habitat_and_trawl-tow_data.csv")
+spec(hab_1)
+names(hab_1)
+# See Long and Lat in decimal degrees
+View(hab_1) 
+str(hab_1)
+
+coords <- data.frame(longitude  = hab_1$Long, latitude = hab_1$Lat)
+
+hab_sf1 <- st_as_sf(hab_1, coords = c("Long", "Lat"), crs =4269) %>% st_transform((5070))
+
+class(hab_sf1)
+# read in shapefile
+bigbend_seagrass <- st_read("bigbend_grass.shp")
+# asking do the two sf objects have the same CRS
+st_crs(hab_sf1) == st_crs(bigbend_seagrass)
+
+bigbend_seagrass <- bigbend_seagrass %>% st_transform(5070)
+st_crs(hab_sf1) == st_crs(bigbend_seagrass)
+
+mapview(hab_sf1) + mapview(bigbend_seagrass)
+```
+
+## Writing sf objects to shapefiles and geopackage geodatabase
+A sf object can be written out as an ESRI shapefile. If you have several sf objects, such as points for sites and polygons of seagrass areas, you can keep them together by writing them out as a geopackage geodatabase.
+```{r, gpackage, eval=FALSE}
+
+# Writing a single shapefile to the working directory
+st_write(hab_sf1,
+dsn = "hab1.shp",
+driver = "ESRI Shapefile",
+ append = FALSE)
+
+# This will put the sf layer into the geodatabase
+st_write(hab_sf1, dsn = file.path(getwd(), "bbsg_v1_2021_03_18.gpkg"), layer = "habitat", driver = "GPKG", quiet = FALSE)
+
+# We can check on what layers are in the geodatabase.
+st_layers("bbsg_v1_2021_03_18.gpkg") 
+ 
+# Now we can put in the polygons.
+ st_write(bigbend_seagrass, dsn = file.path(getwd(), "bbsg_v1_2021_03_18.gpkg"), layer = "bigbend_seagrass", driver = "GPKG", quiet = FALSE, delete_layer=TRUE)
+st_layers("bbsg_v1_2021_03_18.gpkg") 
+
+# Note if we were to modify hab_sf1 in R, for example, then to replace the existing layer you have to specify both delete_layer = TRUE and append = TRUE arguments so that the old sf object is deleted and the new one is appended to replace it.
+
+# st_write(hab_sf1, dsn = file.path(getwd(), "st_layers("bbsg_v1_2021_03_18.gpkg") "), layer = "hab_sf1", delete_layer = TRUE, append = TRUE, driver = "GPKG", quiet = FALSE)
+```
+
+## Summary of Distances
+Getting a summary of distances is important because we are going to be looking at how spatial variance, the semivariance of salinity, is a function of distance.
+```{r, distance}
+
+# use st_distance function to create pairwise distance matrix among all the sites
+# extract half of that matrix and convert it to a vector then get the summary of the distances, min, Q1, median, mean, Q3, and max
+hab_sf2 <- filter(hab_sf1, (!is.na(Salinity)))
+distmat_hab <- st_distance(hab_sf2, hab_sf2,by_element = FALSE)
+
+dim(distmat_hab) # get the dimensions of the distance matrix
+rdistmat_hab <- distmat_hab[1:80, ] # change to match # sites/rows
+rdistmat1_hab <- as.vector(rdistmat_hab)
+
+round(summary(rdistmat1_hab[rdistmat1_hab!=0]))
+
+# Knowing max distance important for variogram function as that is used in the default cutoff. That cutoff is the spatial separation distance up to which a pair of points are included in semivariance estimates.  The default is the length of the diagonal of bounding box spanning the data, which is ~ approximately the max distance.  Our default cutoff will be 243,452/3 = 81,150 meters or ~ 82 km.
+```
+
+## Clouds and Semivariograms
+We will start with a semivariogram cloud to examine spatial variation in salinity.  Specifically, just we had calculated all pairwise distances between sites, we will calculate all pairwise semivariances in salinity, and plot those semivariances as a function of their distances.
+
+A semivariogram cloud presents a smear of points, but by binning those points into distance classes and by binning the semivariances of those points through the width argument we can make a semivariogram plot.  With the semivariogram plot we are asking:  do stations near each other have similar salinities?  Is the semivariance, gamma, small at smaller distances and does it increase with larger distances?
+```{r, salinity_semivar}
+
+ggplot(hab_sf2, aes(Salinity)) + geom_histogram()
+# histogram of salinity
+
+# log transformation not help so stick with original data
+ggplot(hab_sf2, aes(log(Salinity))) + geom_histogram()
+summary(hab_sf2$Salinity)
+
+# Semivariogram Cloud
+z_sal_cloud =  variogram(Salinity ~ 1, hab_sf2, cloud = TRUE)
+class(z_sal_cloud)
+plot(z_sal_cloud)
+# quite of smear of points
+z1 <- as.data.frame(z_sal_cloud)
+View(z1) # brings up the semivariance cloud data so we can sort on gamma, the semivariance, to find our maximum gamma occurs at a pair of sites about 26 km apart. But, where are those sites and what are their salinities?
+
+# https://r-spatial.github.io/gstat/reference/plot.variogramCloud.html
+
+# the inner plot statement is saying plot the cloud as we did above, but with identiy = TRUE we now get a interactive crosshairs to select a point on graph.  Once we make that selection and hit finish, then the outer plot statement executes to map our sites and connect the pairs of sites with a red line
+plot(plot(z_sal_cloud, identify = TRUE), hab_sf2)
+# now going back to cloud plot we see a pair of numbers identifying that point.  We can view z1 and enter 75 under left and 56 under right to filter to only that point.   
+view(hab_sf2)
+# 56 and 75 are the the row numbers in the data frame hab_sf2 so we can get get the salinity measurements and hand calculate gamma in z1.
+# 56, site BB10_087, has a salinity of 16
+# 75, site BB10_116, has a salinity of 34.7
+
+# gamma = 1/2(z1 - z2)^2 = 1/2(34.7 - 16)^2 = 1/2(18.7^2) = 1/2(346.9)
+# gamma = 174.845
+
+# Semivariogram Plot
+# accept the defaults
+z_sal_sv1 = variogram(Salinity ~1, hab_sf2)
+plot(z_sal_sv1, ylab = "Salinity Semivariance")
+# note the smaller scale now on the y-axis
+# how are these 15 points, and their semivariance and distance, related to the cloud we saw earlier?
+
+plot(z_sal_sv1, plot.numbers = TRUE) #shows number of pairs in each binned point and we see that in the corresponding semivariogram object
+View(z_sal_sv1)
+
+# now specify cutoff and width arguments.  width specifies the distance size class, or bin or lag size, over which we will average distances and semivariances we had in the cloud.  The specifications below mean we look at those points from the cloud in 10 km increments out to 80 km so this semivariogram plot will have 8 points plotted.
+z_sal_sv2 = variogram(Salinity ~1, hab_sf2, cutoff = 80000, width = 10000)
+plot(z_sal_sv2, ylab = "Salinity Semivariance")
+View(z_sal_sv2)
+# now view cloud data frame and filter for distances (dist) 0-10000
+View(z1)
+# those are 254 cloud points that had both averages taken of distance and gamma to make that first point in the semivariogram plot
+
+filter(z_sal_cloud, dist <= 10000) %>% 
+  summarize(
+    np = dplyr::n(),
+    mean_dist = mean(dist),
+    mean_gamma = mean(gamma)
+  )
+# these results match the z_sal_sv2 results
+```
+
+## Random semivariograms
+I downloaded Chapter 8 code from Applied Spatial Data Analysis with R, <https://asdar-book.org/>, for generating random variograms. An initial empirical, or sample, variogram is calculated and plotted for salinity, and that object is saved. Then salinity values are randomly sampled and assigned to the coordinates so that a random semivariogram can be calculated. That is done 100 times, and the grey lines of the random semivariograms are plotted with the blue line of the empirical semivariogram. The semivariogram for salinity shows suggestive evidence of spatial autocorrelation out to ~ 10 km compared to randomized semivariograms.
+I have used the script below to explore spatial structure in National Aquatic Resource Surveys (NARS) data.
+```{r, random_semivar}
+print(xyplot(gamma ~ dist, z_sal_sv1, pch = 3, type = 'b', lwd = 2, col = 'darkblue',
+             panel = function(x, y, ...) {
+               for (i in 1:100) {
+                 hab_sf2$random = sample(hab_sf2$Salinity)
+                 v = variogram(random ~ 1, hab_sf2)
+                 llines(v$dist, v$gamma, col = 'grey')
+               }
+               panel.xyplot(x, y, ...)
+             },
+             ylim = c(0, 35), xlab = 'distance', ylab = 'Salinity semivariance'
+))
+
+# Semivariograms are sensitive to outliers.  See https://pdixon.stat.iastate.edu/stat406/notes/part 3b-4.pdf
+# so use Cressie-Hawkins to create robust variogram
+
+z_sal_sv3 = variogram(Salinity ~1, hab_sf2, cressie = TRUE)
+plot(z_sal_sv3, cressie =TRUE, ylab = "Salinity Robust Semivariance")
+# change ylim below in random semivariogram based on this plot
+
+print(xyplot(gamma ~ dist, z_sal_sv3, pch = 3, type = 'b', lwd = 2, col = 'darkblue',
+             panel = function(x, y, ...) {
+               for (i in 1:100) {
+                 hab_sf2$random = sample(hab_sf2$Salinity)
+                 v = variogram(random ~ 1, hab_sf2, cressie = TRUE)
+                 llines(v$dist, v$gamma, col = 'grey')
+               }
+               panel.xyplot(x, y, ...)
+             },
+             ylim = c(0, 35), xlab = 'distance', ylab = 'Salinity robust semivariance'
+))
+
+```
+The marked difference in the first two bins of classical semivariance versus Cressie-Hawkins semivariance reflects what we saw in the semivariance cloud. We have pairs of sites at close distances, < 25 km, having large semivariance values. In other words, low salinity sites close to high salinity sites.
+
+## Disclaimer
+The United States Environmental Protection Agency (EPA) project code is provided on an "as is" basis and the user assumes responsibility for its use. EPA has relinquished control of the information and no longer has responsibility to protect the integrity , confidentiality, or availability of the information. Any reference to specific commercial products, processes, or services by service mark, trademark, manufacturer, or otherwise, does not constitute or imply their endorsement, recommendation or favoring by EPA. The EPA seal and logo shall not be used in any manner to imply endorsement of any commercial product or activity by EPA or the United States Government.
