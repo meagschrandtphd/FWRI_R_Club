@@ -1,0 +1,547 @@
+---
+title: "GIS and Spatial Analysis in R"
+author: "Anthony Gillis"
+date: "3/11/2021"
+output: pdf_document
+---
+
+Key overall packages
+```{r, message = FALSE}
+#webshot::install_phantomjs() run only for producing pdf with HTML functions ignored otherwise; run in console and not in .rmd section
+library(tidyverse)
+library(sf)
+library(raster)
+```
+
+Creating base folder pathways and checking if it exists
+```{r}
+basefolder = "C:/Users/Anthony.Gillis/Desktop/RClubPresData"
+dir.exists(basefolder)
+```
+
+Reading in spatial layers
+```{r}
+## Existing spatial layers
+HUC = read_sf(paste0(basefolder, "/FLHUC12.shp"))  
+
+## Existing Raster layers
+FLBPRast = raster(paste0(basefolder, "/FLBlueprintVer1.tif"))
+
+## Point Layer creation
+## Simple for loop to create points and assigns 'z' value dependent on location
+# BirdPnt = data.frame(
+#   SiteID = character(),
+#   Lat = numeric(),
+#   Lon = numeric(),
+#   Occupancy = numeric(),
+#   stringsAsFactors = FALSE
+# )
+# for (i in 1: 20000){
+# BirdPnt[i, "SiteID"] = paste0("2020_", i)
+# BirdPnt[i, "Lat"] = runif(1, 24.543939, 31.0000978)
+# BirdPnt[i, "Lon"] = runif(1, -87.634650, -80.031100)
+# if (BirdPnt[i, "Lat"] <= 26.531 & BirdPnt[i, "Lon"] >= -82.25){
+#   BirdPnt[i, "Occupancy"] = round(runif(1, 0.0, 0.95), digits = 5)
+# } else {
+#   BirdPnt[i, "Occupancy"] = round(runif(1, 0.0, 0.5), digits = 5)
+# }
+# }
+# write.table(BirdPnt, paste0(basefolder, "/MockBirdOccu.txt"))
+
+BirdPnt = read.table(paste0(basefolder, "/MockBirdOccu.txt"))
+
+## Taking the a normal table (form previous step) and turning it into a spatial layer
+BirdsOccu = st_as_sf(BirdPnt, coords = c("Lon", "Lat"), na.fail = FALSE)
+```
+
+It's always good to double check the layers and their associated metadata.  
+In particular, you should double check:  
+  1) number of features  
+  2) geom type (i.e. point, polyline, polygon)  
+  3) epsg, proj4sting - this is your projection and defines how data is spatially preceived  
+  4) headers (attributes) in table 
+```{r}
+HUC
+## epsg  = not present
+## projected CRS = FDEP Albers HARN
+st_crs(HUC)$proj4string
+## always double check spatial units (meters here)
+```
+
+```{r}
+FLBPRast
+## resolution (distance units, in this case meters) and values always good to double check/know
+## espg = not present
+## proj4string is same as the FDEP Albers HARN layers
+```
+
+```{r}
+BirdsOccu
+## espg = NA
+## proj4string = NA
+```
+
+Inspecting layers  
+Transforming coordinate refrence systems (crs) and projections
+```{r}
+FLBPRastTr1 = projectRaster(FLBPRast, crs = 4326)
+FLBPRastTr1
+## WGS 84 common system but losses in metadata, specifically here units (resolution in decimal degrees now)
+```
+
+```{r}
+FLBPRast = projectRaster(FLBPRastTr1, 
+                         crs = "+proj=aea +lat_0=24 +lon_0=-84 +lat_1=24 +lat_2=31.5 +x_0=400000 +y_0=0 +ellps=GRS80 +units=m +no_defs")
+FLBPRast
+## Back to original projection
+```
+No crs so needs to be set  
+Set using the espg, for more commonly used projects
+```{r}
+BirdsOccuWGS84 = st_set_crs(BirdsOccu,
+                            4326)
+BirdsOccuWGS84
+```
+
+Transformed using proj4string which can be done with direct string (see raster transformation) or calling the string of another layer
+```{r}
+BirdsOccuFDEPproj4 = st_transform(BirdsOccuWGS84, 
+                                  st_crs(HUC)$proj4string)
+BirdsOccuFDEPproj4
+```
+
+Transformed again, with proejction name retained (i.e. FDEPAlbersHARN)
+```{r}
+BirdsOccuFDEP = st_transform(BirdsOccuWGS84, 
+                             st_crs(HUC))
+BirdsOccuFDEP
+```  
+
+Visual inspection of data  
+Key packages
+```{r, message  = FALSE}
+library(leaflet)
+library(tmap)
+library(mapview)
+```
+
+Base plot functions
+```{r}
+plot(FLBPRast)
+```
+
+\newpage
+```{r}
+plot(HUC)
+```
+*Note: All attributes plotted and is overwhelming
+\newpage
+Attribute specification can be introduced and color fill based on specified attribute
+```{r}
+plot(HUC["HUC_8"], 
+     axes = F,
+     main = "Florida's HUC 8s")
+```
+
+\newpage
+Col, along with other plot parameters, can be introduces to ensure everything is colored a specific color
+```{r}
+plot(HUC["HUC_8"], 
+     asp = 1, 
+     axes = F, 
+     col = "darkolivegreen",
+     main = "Florida's Hydrologic Unit Code 12 (HUC 12)")
+```
+
+\newpage
+More plot parameters can be introduced (point type, size, etc.)
+```{r}
+plot(BirdsOccu["Occupancy"], 
+     axes = T, 
+     cex = 0.75, 
+     pch = 1)
+```
+
+\newpage
+Tmap package  
+More similar to ggplot '+' funtioncallity
+```{r}
+tm_shape(HUC) +
+  tm_polygons(col = "gray60")
+```
+
+\newpage
+Leaflet package  
+Valuable for more dynamic inspection (i.e. zoom, pan)
+```{r}
+MyLeafMap <- leaflet(HUC) %>% 
+  addTiles() %>%
+  addPolygons(data = HUC, fillOpacity = 0.1)
+```
+
+```{r, fig.show = 'hide'}
+HUCWGS84 = st_transform(HUC, crs = 4326)
+
+MyLeafMap <- leaflet(HUCWGS84) %>% 
+  addTiles() %>%
+  addPolygons(data = HUCWGS84, fillOpacity = 0.1)
+
+MyLeafMap
+```
+
+\newpage
+mapview package  
+Simplfied dynamic inspection with tile base maps automatically loaded (i.e. no 'addTiles()' needed)
+```{r, fig.show = 'hide'}
+mapview(BirdsOccuFDEP)
+```
+
+\newpage
+Adding multiple layers
+```{r}
+plot(HUC %>% st_geometry(), 
+     asp = 1, 
+     axes = F, 
+     col = "darkolivegreen",
+     main = "Florida's Hydrologic Unit Code 12 (HUC 12)")
+plot(BirdsOccuFDEP %>% st_geometry(), 
+     add = TRUE, 
+     axes = T, 
+     cex = 0.75, 
+     pch = 1)
+```
+
+\newpage
+```{r}
+MyTmap = tm_shape(HUC) +
+  tm_polygons(col = "HUC_8",
+              n = levels(HUC$HUC_8),
+              style = "cont",
+              pallette = "YlOrRd",
+              title = "HUC 12s") +
+  tm_shape(BirdsOccuFDEP) +
+  tm_symbols(size = 0.02) +
+  tm_layout(legend.position = c("left", "bottom"), legend.bg.color = "white") +
+  tm_scale_bar(position = c("right", "bottom")) +
+  tm_compass( type =  "radar", position = c("right", "top"))
+MyTmap
+```
+
+\newpage
+```{r, fig.show = 'hide'}
+MyLeafMap2 = leaflet(HUCWGS84) %>% 
+  addTiles() %>%
+  addPolygons(data = HUCWGS84, popup = ~HUC_8) %>%
+  addCircles(data = BirdsOccuWGS84, popup = ~SiteID)
+MyLeafMap2
+```
+
+\newpage
+```{r, fig.show = 'hide'}
+mapview(list(BirdsOccuFDEP, HUC))
+```
+
+\newpage
+Addding color to mapview based on attribute, point size and removing outline (alpha)
+```{r, fig.show = 'hide'}
+mapview(BirdsOccuFDEP, zcol = "Occupancy", alpha = 0, cex = "Occupancy") + mapview(HUC, zcol = "HUC_8")
+```
+
+Basic spatial analysis and functions
+```{r}
+MangWGS84 = st_read(paste0(basefolder, "/MangroveWGS84.shp"))
+```
+
+Buffers  
+Double check layer distance metric
+```{r}
+st_crs(MangWGS84)$units
+st_crs(HUC)$units
+```
+
+Transform to utilize "easier" units such as meters and create buffer based on new unit
+```{r}
+MangFDEP = st_transform(MangWGS84, crs = st_crs(HUC))
+st_crs(MangFDEP)$units    
+
+Mang1km = st_buffer(MangFDEP, dist = 1000)
+```
+
+Observe differences between original and buffer
+```{r, fig.show = 'hide'}
+ mapview(Mang1km) + mapview(MangFDEP, col.regions = "grey60")
+```
+
+Notice every feature gets it's own buffer which is very 'messy'\newpage
+So we carry out a union on that layer to combine all features into one
+```{r, fig.show = 'hide'}
+Mang1kmUn = st_union(Mang1km)
+mapview(MangFDEP, col.regions = "grey60") + mapview(Mang1kmUn)
+``` 
+\newpage
+Spatial intersections, subsets primary dataframe ('birds' datasets) to those that intersect with 
+secondary dataset (mangrove buffer)
+```{r, fig.show = 'hide'}
+NearMang = st_intersection(BirdsOccuFDEP, Mang1kmUn)
+
+mapview(Mang1kmUn, col.regions = "grey60") + mapview(NearMang, zcol = "Occupancy", cex = "Occupancy")
+```
+
+\newpage
+Spatail joins, appends tabular data to primary dataset from secondary datasets based spatial intersections
+```{r}
+names(BirdsOccuFDEP)
+names(HUC)
+OccuJoin = st_join(BirdsOccuFDEP, HUC)
+names(OccuJoin)
+```
+Entire dataset is kept with st_join (contrasted to st_intersection subsetting) and feature that fail join logic receive 'NA' in joined attributes.  
+Create a simple summary table that can joined back to spatial file st_drop_geometry() is introduced because summary can get really screwy from there
+```{r}
+OccuJoinSum = OccuJoin %>%
+  group_by(HUC_12) %>%
+  summarise(SiteCount = n_distinct(SiteID) , 
+            HUCOccu = mean(Occupancy)) %>%
+  st_drop_geometry()
+head(OccuJoinSum)
+```
+
+Join summary table back to selected visual summary layer with tabular join
+```{r}
+HUCOccu = HUC %>%
+  dplyr::select(HUC_12,
+                ActAREA_KM, 
+                geometry) %>% 
+  right_join(OccuJoinSum, 
+             by = "HUC_12") %>%
+  mutate(AreaSampleIndex = SiteCount / ActAREA_KM, 
+         OccuAreaIndex = HUCOccu*AreaSampleIndex)
+names(HUCOccu)
+plot(HUCOccu["OccuAreaIndex"], main = "Fake Occupancy Index of Something")
+```
+
+\newpage
+EXAMPLE - Distance between habitat features of South Florida, in this case mangroves and 
+seagrass, summarized by HUC watersheds  
+Subsetting Southern Florida HUCs (Everglades and Keys)
+```{r}
+SoFlHUCWGS84 = HUCWGS84 %>%
+  filter(HUC_8 %in% c("03090202", "03090203", "03090204", "03090206"))
+```
+
+Large datasets that have been run through considerable amounts of analyses can exhibit
+losses or damaged geometry, st_make_valid() repairs any damages (i.e. 'kinks' in polygon 
+boundaries)
+```{r}
+SoFlHUCWGS84 = st_make_valid(SoFlHUCWGS84)
+plot(SoFlHUCWGS84["HUC_8"])
+```
+
+South Florida magroves via intersection with S. FL Hucs
+```{r}
+MangWGS84 = st_make_valid(MangWGS84)
+SoFlMangsWGS84 = st_intersection(MangWGS84,
+                                 SoFlHUCWGS84)
+plot(SoFlMangsWGS84["HUC_8"])
+
+SoFlMangsWGS84 = SoFlMangsWGS84 %>%
+  dplyr::select(SITE, 
+         NAME_SITE,
+         HUC_8,
+         HUC_12,
+         geometry)
+```
+
+Read in seagrass asset file and intersect to S. FL using bounding box
+```{r}
+SeagrassWGS84 = st_read(paste0(basefolder, "/SeagrassWGS84.shp"))
+SeagrassWGS84 = st_make_valid(SeagrassWGS84)
+```
+
+```{r, fig.show = 'hide'}
+BoundBox = st_bbox(SoFlHUCWGS84)
+BoundBox = st_as_sfc(BoundBox)
+
+mapview(BoundBox) + mapview(SoFlHUCWGS84)
+```
+
+```{r, fig.show = 'hide'}
+SoFlSGWGS84 = st_intersection(SeagrassWGS84, BoundBox)
+
+mapview(BoundBox, col.regions = "grey60") + mapview(SoFlHUCWGS84) + mapview(SoFlSGWGS84, col.regions = "yellow", alpha = 0)
+```
+
+
+Distance between to sets of polygons (i.e. seagrass and mangrove)  
+Polygon to polygon distance measurements are very compute heavy  
+Instead we'll look at mangrove centroid distance to nearest seagrass in
+South Florida  
+First we'll create feature ID for joining distances after
+```{r}
+SoFlSGWGS84 = SoFlSGWGS84 %>%
+  mutate(Habitat = "SG",
+         ID = row_number())%>%
+  unite("FeatureID", 
+        Habitat:ID,
+        sep = "_",
+        remove = TRUE)
+
+SoFlMangsWGS84 = SoFlMangsWGS84 %>%
+  mutate(Habitat = "Mang",
+         ID = row_number())%>%
+  unite("FeatureID", 
+        Habitat:ID, 
+        sep = "_", 
+        remove = TRUE)
+```
+
+Create the centroids for all featrues in both data layers
+```{r}
+SFlMangWGS84Cent = st_centroid(SoFlMangsWGS84)
+plot(SFlMangWGS84Cent["HUC_12"])
+sFlSGWGS84Cent = st_centroid(SoFlSGWGS84)
+plot(sFlSGWGS84Cent["SITE"], legend = FALSE)
+```
+
+Measuring distances between centrioids of features
+```{r}
+library(nngeo)
+
+MangDistSG = st_nn(SFlMangWGS84Cent, 
+                   sFlSGWGS84Cent, 
+                   k = 1, 
+                   maxdist = 5000, 
+                   returnDist = TRUE,
+                   progress = TRUE)
+class(MangDistSG)
+```
+
+Following codes is not necessary but just clarifies that the units provided are in meters and do not depend on projection units...
+```{r}
+# SFlMangFDEPCent = st_transform(SFlMangWGS84Cent, st_crs(HUC))
+# sFlSGFDEPCent = st_transform(sFlSGWGS84Cent, st_crs(HUC))
+
+# MangDistSG2 = st_nn(SFlMangFDEPCent,
+#                     sFlSGFDEPCent,
+#                     k = 1,
+#                     maxdist = 5000,
+#                     returnDist = TRUE,
+#                     progress = TRUE)
+# 
+# MangDistdf = as.data.frame(do.call(cbind, MangDistSG))
+# MangDistdf$nn = as.character(MangDistdf$nn)
+# MangDistdf$dist = as.numeric(MangDistdf$dist)
+# MangDistdf$Proj = "WGS84"
+# 
+# MangDistdf2 = as.data.frame(do.call(cbind, MangDistSG2))
+# MangDistdf2$nn = as.character(MangDistdf2$nn)
+# MangDistdf2$dist = as.numeric(MangDistdf2$dist)
+# MangDistdf2$Proj = "FDEP Albers HARN"
+# 
+# SigDiffdf = rbind(MangDistdf, MangDistdf2)
+# t.test(SigDiffdf$dist ~ SigDiffdf$Proj)
+# 
+# DistComp = MangDistdf %>%
+#   rename(NearestSGCent1 = nn, Distance_WGS84 = dist)%>%
+#   bind_cols(MangDistdf2) %>%
+#   rename(NearestSGCent2 = nn, Distance_FDEP = dist)%>%
+#   relocate(NearestSGCent1, NearestSGCent2, Distance_WGS84, Distance_FDEP) %>%
+#   mutate(SGCentMatch = case_when(
+#     NearestSGCent1 == NearestSGCent2 ~ "TRUE",
+#     NearestSGCent1 != NearestSGCent2 ~ "FALSE")) %>%
+#   filter(SGCentMatch == "TRUE") %>%
+#   mutate(DistDiff = abs(Distance_WGS84 - Distance_FDEP))
+# 
+# DiffMean = mean(DistComp$DistDiff, na.rm = T)
+# DiffSD = sd(DistComp$DistDiff, na.rm = T)
+# DiffError = qnorm(0.975)*DiffSD/sqrt(nrow(DistComp))
+# Diff95CIleft = DiffMean - DiffError
+# Diff95CIRight = DiffMean + DiffError
+#########
+```
+
+Tying distances list back to mangrove centroid layer (data frame)
+```{r}
+MangDistWGS84 = as.data.frame(do.call(cbind, MangDistSG))
+MangDistWGS84$nn = as.character(MangDistWGS84$nn)
+MangDistWGS84$dist = as.numeric(MangDistWGS84$dist)
+
+SFlMangWGS84Cent = cbind(SFlMangWGS84Cent, MangDistWGS84$dist)
+```
+
+Sumarize by HUC 12 with mean and standard deviation of distance
+```{r}
+MangWGS84DistSumTbl = SFlMangWGS84Cent %>%
+  st_drop_geometry()%>%
+  group_by(HUC_12) %>%
+  rename(MangroveDistance = MangDistWGS84.dist) %>%
+  summarise(MeanMangDisttoSg = mean(MangroveDistance, na.rm = TRUE), 
+            StDev = sd(MangroveDistance, na.rm = TRUE),
+            N = n()) %>%
+  mutate(Error = qnorm(0.975)*StDev/sqrt(N),
+         Left95CI = MeanMangDisttoSg - Error,
+         Right95CI = MeanMangDisttoSg + Error)
+
+SoFlHUCWGS84 = SoFlHUCWGS84 %>%
+  left_join(MangWGS84DistSumTbl, by = "HUC_12")
+
+pal <- RColorBrewer::brewer.pal(7, "RdYlBu")
+plot(SoFlHUCWGS84["MeanMangDisttoSg"], 
+     breaks = "jenks", 
+     nbreaks = 7, 
+     pal = pal)
+```
+
+\newpage
+Exporting/Writing spatial layer  
+Using base sp write function is good for single shapefile not placed within a geodatabase (.gdb)
+```{r, warning = FALSE}
+st_write(SoFlHUCWGS84, 
+         dsn = paste0(basefolder, "/MangDisttoSg.shp"),
+         driver = "ESRI Shapefile", 
+         append = FALSE)
+```
+
+Writing sf objects to geopackage geodatabase which can be brought into QGIS and ESRI that 
+creates a schema for layers and aids in helping maintain data integrity
+```{r}
+st_write(BirdsOccu, 
+         dsn = file.path(basefolder, 
+                         "RClubPresResults.gpkg"), 
+         layer = "BirdOccupancy",
+         driver = "GPKG", 
+         quiet = FALSE)
+dir(basefolder)
+```
+dsn is the folder path for your geodatabase, if it doesn't exist the gdb will be created and can be checked with dir() function layer is the name given to the file in the gdb and driver of course needs to be "GPKG"  
+We can check on what layers are in the geodatabase
+```{r}
+st_layers("RClubPresResults.gpkg") 
+```
+
+Adding a second layer and retieving layer names
+```{r}
+st_write(BirdsOccuWGS84, 
+         dsn = file.path(basefolder, 
+                         "RClubPresResults.gpkg"), 
+         layer = "BirdOccupancyWGS84",
+         driver = "GPKG", 
+         quiet = FALSE)
+st_layers("RClubPresResults.gpkg") 
+```
+
+If we were to modify hab_sf1 in R, for example, then to replace the existing layer you have to specify both delete_layer = TRUE and append = TRUE
+```{r}
+BirdsOccu = subset(BirdsOccu, 
+                   BirdsOccu$Occupancy >= 0.25)
+
+st_write(BirdsOccu, 
+         dsn = file.path(basefolder, 
+                         "RClubPresResults.gpkg"), 
+         layer = "BirdOccupancy", 
+         delete_layer = TRUE, 
+         append = TRUE, 
+         driver = "GPKG", 
+         quiet = FALSE)
+st_layers("RClubPresResults.gpkg") 
+```
