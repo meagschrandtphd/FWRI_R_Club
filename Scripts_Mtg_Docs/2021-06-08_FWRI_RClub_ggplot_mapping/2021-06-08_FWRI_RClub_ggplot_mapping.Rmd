@@ -267,6 +267,13 @@ WIMap <- ggplot() +
 WIMap
 ```
 
+## Other Resources
+
+There are a lot of spatial references for R. Here is another one for sf and ggplot, specifically:
+<https://www.jla-data.net/eng/merging-geometry-of-sf-objects-in-r/>
+
+And the R Spatial Workshop_EPA: <https://mhweber.github.io/AWRA_2020_R_Spatial/>
+
 ## FWRI R Club Announcements
 
 <span style="color:green">Our next [online] meeting is scheduled for **July 13, 2020 at 1 pm eastern time**.</span>
