@@ -1,0 +1,278 @@
+---
+title: "Simple, static maps with ggplot"
+author: "M. Schrandt"
+date: "5/24/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Introduction
+
+Often we want to plot geospatial data for something simple, like a map that shows occurrence of species counts in our sampling area, static maps for publications, etc.
+
+Today, we'll briefly cover how to get started with simple maps in ggplot. There are many ways to approach this, but I'll try to get you started. We'll make use of the r packages `tidyverse` (which contains `ggplot`), `sf`, and `ggspatial`.
+
+```{r setup, message = FALSE}
+## Load Libraries
+library(tidyverse)
+library(sf)
+library(ggspatial) # north arrow and scale bar for map
+```
+
+## Today's Data
+
+### Point Data (fish counts)
+
+We'll be using a dataset of fish count data for 7 species of reef fish. The data are from a fisheries-independent monitoring survey of polyhaline seagrass beds along the West Florida Shelf, from 2008 to 2018. These data are available on Mendeley Data: <http://dx.doi.org/10.17632/9bzshm5h46.1>
+
+They are associated with a publication from FWC:  
+Schrandt, M.N., Shea, C., Kurth, B., Switzer, T. 2021. Amending survey design to improve statistical inferences: monitoring recruitment of juvenile reef fish in the eastern Gulf of Mexico. Fisheries Research 241: 106015. <https://doi.org/10.1016/j.fishres.2021.106015>
+
+Let's read in our fish data:
+```{r readPointData}
+#  Reef fish species counts (including zeroes) from seagrass beds along West Florida Shelf
+fishdat <- read.csv("Catch_Env_Data_new.csv", header = TRUE, stringsAsFactors = FALSE) %>%
+  # reduce our columns; not all are needed
+  select(Reference, Scientificname, N, Bay, Gear, Year, Month, Zone, Longitude, Latitude) %>%
+  filter(Bay == "TB")
+
+head(fishdat)
+```
+
+### Base Map
+
+If we're making a static map for a paper or publication, we're also likely going to want/need a basemap shapefile.
+
+The detailed state of Florida shoreline shapefile is large, so we're going to subset the data to just Tampa Bay, and use a smaller shapefile to help with quicker rendering for this example.
+
+Let's read in the Tampa Bay shapefile:
+```{r readBase}
+# Read in shapefile of TB geo
+TBshore_sf_in <- read_sf(dsn = ".", layer = "tb_geo") %>%
+  #just keep the geometry column since that's all we need for this exercise (it contains lat/lon)
+  select(geometry) %>%
+  st_make_valid()
+
+# check coordinate reference system
+st_crs(TBshore_sf_in)
+```
+The coordinate reference system (CRS) is set to NAD83. Location data are collected using GPS, which typically uses the WGS84 CRS (you'll want to check your unit to see how it records). I am going to change the CRS of the base layer so that our points are projecting in the same CRS.
+
+```{r changeCRS}
+TBshore_sf <- st_transform(TBshore_sf_in, crs = 4326)
+st_crs(TBshore_sf)
+```
+
+## Plot our Base Map
+
+If you're familiar with plotting in ggplot, mapping really isn't too different. We basically just use a different `geom`, and the aesthetics options, faceting, etc. are all still available.
+
+Use the `geom_sf()` function to plot shapefiles. If you call `str(TBshore_sf)`, you'll see it is a "POLYGON"...so if we want to color in the polygon, we use the `fill=` argument. If you want a different color for the outline, then use the `color` argument. You can change the thickness of the lines with the `size` argument. We have very detailed shorelines with this shapefile so I'm using a thin line.
+
+```{r basemap}
+base <- ggplot() +
+  geom_sf(data = TBshore_sf, fill = "lemonchiffon", size = 0.1)
+base
+```
+
+The `TBshore_sf` shapefile was cropped from the state of Florida shoreline shapefile (that's why we get the straight lines on the north, south, and east sides. We can set the boundaries of our map with `coord_sf()` to basically crop out those lines.
+```{r}
+base <- ggplot() +
+  geom_sf(data = TBshore_sf, fill = "lemonchiffon", size = 0.1) +
+  #set extent of coordinates
+  coord_sf(xlim = c(-82.9, -82.2), ylim = c(27.3, 28.15), expand = FALSE) +
+  theme_classic()
+base
+```
+
+
+## Add Point Data
+
+We can use `geom_point()` if our point data are not a shapefile, but we need to specify the lat/lon. You'll need the column names of your latitude and longitude in your point data file. For `fishdat` they are called "Latitude" and "Longitude"
+```{r addPoints}
+base + geom_point(data = fishdat, aes(x = Longitude, y = Latitude), size = 1.5, color = "blue")
+```
+
+You'll notice all the points fall in the southern portion of the estuary. This makes sense since the sampling survey is in polyhaline seagrass beds where the salinity is >= 18.
+
+The better alternative is to turn your point data into an `sf` object using the `st_as_sf()` function. This will rely on `sf` to handle "on-the-fly" coordinate systems - this is very useful if your two objects (base map and point data) are not in the same projection.
+```{r makeShape}
+#crs 4326 is for WGS84, which is the crs of our base map shapefile
+fishdat_sf <- st_as_sf(fishdat, coords = c("Longitude", "Latitude"), crs = 4326)
+head(fishdat_sf)
+```
+*Note: Your `fishdat_sf` dataset has 1 less column than the original because the latitude and longitude have been combined into a single column called `geometry`.*
+
+Also of note is the "bounding box" in the output. This is helpful if you want to set the limits of your map to the bounding box of this layer.
+
+Now we can use `geom_sf()` to map our point data `sf` object, instead of `geom_point()`. Here I will change the point color to orange so we know it's a different map.
+```{r pointSF, message = FALSE, warning = FALSE}
+p1 <- ggplot() +
+  geom_sf(data = TBshore_sf, fill = "lemonchiffon", size = 0.1) +
+  geom_sf(data = fishdat_sf, size = 1.5, color = "orange") +
+  # you will need to re-do the limits
+  coord_sf(xlim = c(-82.9, -82.2), ylim = c(27.3, 28.15), expand = FALSE) + 
+  theme_classic()
+p1
+```
+
+## Bounding Box
+Remember the bounding box I mentioned above? If we want to "zoom in" or limit the map to just the area of the points, we can use the bounding box information instead of the previous limits we provided.
+```{r}
+#extract the bounding box info from the shapefile
+bbox <- st_bbox(fishdat_sf)
+
+bbox
+
+p1_zoom <- ggplot() +
+  geom_sf(data = TBshore_sf, fill = "lemonchiffon", size = 0.1) +
+  geom_sf(data = fishdat_sf, size = 1.5, color = "orange") +
+  # supply bounding box corrds as x and y limits
+  coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]), expand = FALSE) + 
+  theme_classic()
+p1_zoom
+```
+
+Be careful with this - your points end up right on the axes if you specify `expand = FALSE` as I did above. Change it to `TRUE` to add a little padding to the limits to ensure that the data and axes don't overlap.
+
+```{r}
+p1_zoom2 <- ggplot() +
+  geom_sf(data = TBshore_sf, fill = "lemonchiffon", size = 0.1) +
+  geom_sf(data = fishdat_sf, size = 1.5, color = "orange") +
+  # supply bounding box corrds as x and y limits
+  coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4]), expand = TRUE) + 
+  theme_classic()
+p1_zoom2
+```
+
+## Add features with the `ggspatial` package
+
+We can grab a north arrow and scale from the `ggspatial` package
+```{r}
+p1 +
+  #location "br" here refers to "bottom right"
+  annotation_north_arrow(location = "br", which_north = "true", style = north_arrow_nautical(),
+                         pad_x = unit(0.5, "cm"), pad_y = unit(0.5, "cm")) +
+  annotation_scale(location = "br", width_hint = 0.25)
+```
+
+## You can save your map with `ggsave()`.
+
+## Examples of other ggplot features you can use...
+
+Example: To color the points by gear type, use `aes()`:
+```{r}
+p2 <- ggplot() +
+  geom_sf(data = TBshore_sf, fill = "lemonchiffon", size = 0.1) +
+  geom_sf(data = fishdat_sf, size = 1.5, aes(color = as.factor(Gear))) +
+  # you will need to re-do the limits
+  coord_sf(xlim = c(-82.9, -82.2), ylim = c(27.3, 28.15), expand = FALSE) + 
+  theme_classic()
+p2
+
+```
+
+Example: To create a panel graphic, use `facet_grid()` or `facet_wrap()`
+```{r}
+p3 <- ggplot() +
+  geom_sf(data = TBshore_sf, fill = "darkolivegreen3", size = 0.1) +
+  geom_sf(data = fishdat_sf, size = 1.5, aes(color = as.factor(Gear))) +
+  facet_wrap(~Gear, ncol = 2) +
+  # you will need to re-do the limits
+  coord_sf(xlim = c(-82.9, -82.2), ylim = c(27.3, 28.15), expand = FALSE) + 
+  theme_classic()
+p3
+```
+
+Example: Plot a single species occurrence over time in the trawl (Gear 300), for 2016-2018. This one could use some fine-tuning to make the x-axis legible.
+```{r}
+Lsyn_dat <- fishdat_sf %>%
+  filter(Scientificname == "Lutjanus synagris",
+         Gear == 300,
+         Year > 2015) %>%
+  mutate(Year = as.integer(Year),
+         Month = as.integer(Month))
+
+p4 <- ggplot() +
+  geom_sf(data = TBshore_sf, fill = "darkolivegreen3", size = 0.1) +
+  geom_sf(data = Lsyn_dat, aes(size = N), color = "purple") +
+  facet_wrap(~Year) +
+  # you will need to re-do the limits
+  coord_sf(xlim = c(-82.9, -82.2), ylim = c(27.3, 28.15), expand = FALSE) + 
+  theme_classic()
+p4
+```
+
+Example: Labeling boundaries/outlines. To reproduce the map (Figure 1) from Schrandt et al. 2021,  that these data are associated with, use the following code
+```{r}
+#### Prep the base layer shape files ####
+# Read in shapefile of Florida land
+FLshoreline_sf <- read_sf(dsn = ".", layer = "Florida_land_40k_no_TB_bridges") %>%
+  select(geometry) %>%
+  st_make_valid()
+
+# Read in the shapefile of WI sampling boundaries
+WIbounds_sf <- read_sf(dsn = ".", layer = "WI_boundaries") %>%
+  mutate(Bay = case_when(Id == 0 ~ "CH",
+                         Id == 1 ~ "TB",
+                         Id %in% c(2, 3, 4) ~ "BB",
+                         Id == 5 ~ "AP",
+                         Id == 6 ~ "SA")) %>%
+  st_make_valid()
+
+# name a look-up vector for area colors (this is where I specify what I want each Bay color to be)
+BayCol <- c("CH" = "#CC79A7",
+            "TB" = "#F0E442",
+            "BB" = "#009E73",
+            "AP" = "#56B4E9",
+            "SA" = "#E69F00")
+
+# make the static map
+WIMap <- ggplot() +
+  # first layer is the FL shoreline base layer
+  geom_sf(data = FLshoreline_sf, fill = "gray90", size = 0.1) +
+  # top layer is the WI sampling boundaries
+  geom_sf(data = WIbounds_sf, aes(color = Bay), fill = NA, size = 0.8) +
+  scale_color_manual(values = BayCol, breaks = c("SA", "AP", "BB", "TB", "CH"),
+                     labels = c("Saint Andrew (SA)", "Apalachicola Bay (AP)", "Big Bend region (BB)",
+                                "Tampa Bay (TB)", "Charlotte Harbor (CH)")) +
+  scale_fill_manual(aes(fill = NA)) +
+  annotation_north_arrow(location = "bl", which_north = "true", style = north_arrow_nautical(),
+                         height = unit(0.8, "cm"), width = unit(0.8, "cm"),
+                         pad_x = unit(0.35, "cm"), pad_y = unit(0.65, "cm")) +
+  annotation_scale(location = "bl", width_hint = 0.25,
+                   height = unit(0.1, "cm")) +
+  #remove the background grid color
+  theme(panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_rect(color = "black", fill = NA),
+        legend.position = c(0.255, 0.42),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 7),
+        legend.key.size = unit(0.75,"line"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        #specify margins around the ggplot
+        plot.margin=grid::unit(c(2,2,2,2), "mm")) +
+  labs(y = "", x = "", color = "West Florida Shelf Estuary") +
+  #add in bay-specific labels
+  annotate(geom = "text", x = -85.9, y = 29.95, label = "SA", size = 3) +
+  annotate(geom = "text", x = -84.6, y = 29.55, label = "AP", size = 3) +
+  annotate(geom = "text", x = -83.9, y = 29.75, label = "BB", size = 3) +
+  annotate(geom = "text", x = -83, y = 27.6, label = "TB", size = 3) +
+  annotate(geom = "text", x = -82.55, y = 26.7, label = "CH", size = 3)
+WIMap
+```
+
+## FWRI R Club Announcements
+
+<span style="color:green">Our next [online] meeting is scheduled for **July 13, 2020 at 1 pm eastern time**.</span>
+
+I'm still looking for volunteers to present something at a meeting of your choice; please consider sharing your skills with the group. Or, if you're stuck on something and want feedback from the group, we can help!
+
+Email if you're interested in presenting or if you have a topic you'd like someone else to present.
+
+Thanks!

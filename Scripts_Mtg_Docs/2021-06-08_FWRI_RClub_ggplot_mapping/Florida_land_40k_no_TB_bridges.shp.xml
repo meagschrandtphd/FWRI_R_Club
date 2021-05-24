@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<metadata>
+	<idinfo>
+		<citation>
+			<citeinfo>
+				<origin>Florida Fish and Wildlife Conservation Commission (FWC), Florida Marine Research Institute (FMRI), Coastal and Marine Resource Assessment (CAMRA)</origin>
+				<title>camra_mrgis_fl_40k</title>
+				<geoform>vector digital data</geoform>
+				<pubinfo>
+					<pubplace>St. Petersburg, Florida</pubplace>
+					<publish>FWC, FMRI, CAMRA</publish>
+				</pubinfo>
+				<onlink Sync="TRUE">\\radner\CedarKey\Common\GIS FIM Universe\Layers\Florida_land.shp</onlink><pubdate>REQUIRED: The date when the data set is published or otherwise made available for release.</pubdate><ftname Sync="TRUE">Florida_land</ftname></citeinfo>
+		</citation>
+		<descript>
+			<abstract>
+This GIS data set represents the Florida shoreline as polygons and lines. Initially digitized in 1990 by USFWS under FMRI contract, the data set was created from the most current National Oceanic and Atmospheric Administration (NOAA) Nautical Charts available at the time. The scale of the source charts varied from 1:10,000 in some harbors to 1:80,000 in the Big Bend area. However, most of the source scale is 1:40,000. 
+
+The current data set is the result of revisions to the 1990 version. Some areas, including inland areas where there is no chart coverage and areas that have needed more accuracy for individual projects, have been digitized from USGS 7.5-minute Quadrangles and Digital Orthophoto Quarter Quadrangles (DOQQs).
+</abstract>
+			<purpose>This data set represents the Florida Shoreline at a 1:40,000 scale in vector format.</purpose>
+			<supplinf>The source scale varies from 1:10,000 to 1:80,000.</supplinf>
+			<langdata Sync="TRUE">en</langdata></descript>
+		<timeperd>
+			<timeinfo>
+				<rngdates>
+					<begdate>1990</begdate>
+					<enddate>Present</enddate>
+				</rngdates>
+				<sngdate><caldate>REQUIRED: The year (and optionally month, or month and day) for which the data set corresponds to the ground.</caldate></sngdate></timeinfo>
+			<current>These data were initially created in 1990; however, updates continue as needed.</current>
+		</timeperd>
+		<status>
+			<progress>Complete</progress>
+			<update>As needed</update>
+		</status>
+		<spdom>
+			<bounding>
+				<westbc>-87.639229</westbc>
+				<eastbc>-79.341716</eastbc>
+				<northbc>31.042844</northbc>
+				<southbc>23.973399</southbc>
+			</bounding>
+			<lboundng><leftbc Sync="TRUE">-87.634769</leftbc><rightbc Sync="TRUE">-80.031012</rightbc><bottombc Sync="TRUE">24.501656</bottombc><topbc Sync="TRUE">31.000999</topbc></lboundng></spdom>
+		<keywords>
+			<theme>
+				<themekt>FMRItheme</themekt>
+				<themekey>shoreline</themekey>
+				<themekey>GIS</themekey>
+				<themekey>mapping</themekey>
+				<themekey>coastal</themekey>
+			</theme>
+			<place>
+				<placekt>FMRIplace</placekt>
+				<placekey>Florida</placekey>
+				<placekey>statewide</placekey>
+				<placekey>northeast Florida</placekey>
+				<placekey>Florida Keys</placekey>
+				<placekey>northwest Florida</placekey>
+				<placekey>south Florida</placekey>
+				<placekey>southwest Florida</placekey>
+				<placekey>Saint Johns River</placekey>
+				<placekey>Lake Okeechobee</placekey>
+				<placekey>Tampa Bay</placekey>
+				<placekey>Charlotte Harbor</placekey>
+				<placekey>Atlantic Ocean</placekey>
+				<placekey>Gulf of Mexico</placekey>
+				<placekey>Everglades National Park</placekey>
+				<placekey>east coast of Florida</placekey>
+				<placekey>west coast of Florida</placekey>
+				<placekey>north Florida</placekey>
+				<placekey>southeast Florida</placekey>
+			</place>
+		</keywords>
+		<accconst>Available without restriction</accconst>
+		<useconst>FWC-FMRI must be credited.</useconst>
+		<ptcontac>
+			<cntinfo>
+				<cntperp>
+					<cntper>GIS Data Librarian</cntper>
+					<cntorg>FWC-FMRI (Florida Fish and Wildlife Conservation Commission-Florida Marine Research Institute)</cntorg>
+				</cntperp>
+				<cntpos>GIS Data Librarian</cntpos>
+				<cntaddr>
+					<addrtype>mailing and physical address</addrtype>
+					<address>
+Florida Marine Research Institute
+100 Eighth  Avenue Southeast
+</address>
+					<city>St. Petersburg</city>
+					<state>Florida</state>
+					<postal>33701</postal>
+					<country>USA</country>
+				</cntaddr>
+				<cntvoice>727-896-8626</cntvoice>
+				<cntfax>727-893-1679</cntfax>
+				<cntemail>gislibrarian@fwc.state.fl.us</cntemail>
+				<hours>8:00 a.m.-5:00 p.m. Eastern time</hours>
+			</cntinfo>
+		</ptcontac>
+		<secinfo>
+			<secsys>FMRI-DC</secsys>
+			<secclass>Available without restriction</secclass>
+			<sechandl>Available without restriction</sechandl>
+		</secinfo>
+		<native>Microsoft Windows 2000 Version 5.0 (Build 2195) Service Pack 1; ESRI ArcCatalog 8.1.1.649</native>
+		<natvform Sync="TRUE">Shapefile</natvform></idinfo>
+	<dataqual>
+		<attracc>
+			<attraccr>All entities and attributes have been identified and documented.</attraccr>
+		</attracc>
+		<posacc>
+			<horizpa>
+				<horizpar>Varies from 1:10,000 to 1:80,000</horizpar>
+			</horizpa>
+		</posacc>
+		<lineage>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>Florida Fish and Wildlife Conservation Commission (FWC), Florida Marine Research Institute, Coastal and Marine Resource Assessment (CAMRA)</origin>
+						<pubdate>1990</pubdate>
+						<pubtime>Unknown</pubtime>
+						<title>camra_mrgis_fl40_1990 (retired data)</title>
+						<geoform>vector digital data</geoform>
+						<pubinfo>
+							<pubplace>St. Petersburg, Florida</pubplace>
+							<publish>FWC, FMRI, CAMRA</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<srcscale>40000</srcscale>
+				<typesrc>chart</typesrc>
+				<srctime>
+					<timeinfo>
+						<sngdate>
+							<time>unknown</time>
+						</sngdate>
+					</timeinfo>
+					<srccurr>publication date</srccurr>
+				</srctime>
+				<srccitea>fl40_1990</srccitea>
+				<srccontr>1990 fl_40 shoreline coverage digitized by USFWS.</srccontr>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>US Department of Commerce, National Oceanic and Atmospheric Administration (NOAA), National Ocean Service (NOS)</origin>
+						<title>National Oceanic and Atmospheric Administration, 1:40,000 scale Nautical charts</title>
+						<geoform>paper nautical charts</geoform>
+						<serinfo>
+							<sername>NOAA Nautical Charts</sername>
+						</serinfo>
+						<pubinfo>
+							<pubplace>Washington DC</pubplace>
+							<publish>US Dept. of Commerce, NOAA, NOS</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<srcscale>40000</srcscale>
+				<srctime>
+					<timeinfo>
+						<sngdate>
+							<time>Unknown</time>
+						</sngdate>
+					</timeinfo>
+				</srctime>
+				<srccitea>NOAA</srccitea>
+				<srccontr>Nautical charts from which the shoreline was originally digitized.</srccontr>
+			</srcinfo>
+			<procstep>
+				<procdesc>This Florida shoreline was originally digitized in 1990 by USFWS under FMRI contract. In all cases, USFWS used the most detailed NOAA navigational charts available at the time (i.e. harbor areas were taken from 1:10000 and the Big Bend was taken from 1:80000).   In some areas, nautical charts were insufficient and 1:24000 USGS quadrangles or DOQQs were used instead of the nautical charts.  This is especially true along rivers.</procdesc>
+				<srcused>NOAA</srcused>
+				<procdate>1990</procdate>
+				<srcprod>fl40_1990</srcprod>
+				<proccont>
+					<cntinfo>
+						<cntperp>
+							<cntper>GIS Data Librarian</cntper>
+							<cntorg>FWC-FMRI (Florida Fish and Wildlife Conservation Commission-Florida Marine Research Institute)</cntorg>
+						</cntperp>
+						<cntpos>GIS Data Librarian</cntpos>
+						<cntaddr>
+							<addrtype>mailing and physical address</addrtype>
+							<address>
+Florida Marine Research Institute
+100 Eighth  Avenue Southeast
+</address>
+							<city>St. Petersburg</city>
+							<state>Florida</state>
+							<postal>33701</postal>
+							<country>USA</country>
+						</cntaddr>
+						<cntvoice>727-896-8626</cntvoice>
+						<cntfax>727-893-1679</cntfax>
+						<cntemail>gislibrarian@fwc.state.fl.us</cntemail>
+						<hours>8:00 a.m.-5:00 p.m. Eastern time</hours>
+					</cntinfo>
+				</proccont>
+			</procstep>
+			<procstep>
+				<procdesc>The shoreline has been supplemented and updated from various sources including DOQQs and USGS 7.5-minute quadrangles. For a history file of updated areas, contact the GIS Librarian.</procdesc>
+				<srcused>fl40_1990</srcused>
+				<procdate>1992-2000</procdate>
+				<proccont>
+					<cntinfo>
+						<cntperp>
+							<cntper>GIS Data Librarian</cntper>
+							<cntorg>FWC-FMRI (Florida Fish and Wildlife Conservation Commission-Florida Marine Research Institute)</cntorg>
+						</cntperp>
+						<cntpos>GIS Data Librarian</cntpos>
+						<cntaddr>
+							<addrtype>mailing and physical address</addrtype>
+							<address>
+Florida Marine Research Institute
+100 Eighth  Avenue Southeast
+</address>
+							<city>St. Petersburg</city>
+							<state>Florida</state>
+							<postal>33701</postal>
+							<country>USA</country>
+						</cntaddr>
+						<cntvoice>727-896-8626</cntvoice>
+						<cntfax>727-893-1679</cntfax>
+						<cntemail>gislibrarian@fwc.state.fl.us</cntemail>
+						<hours>8:00 a.m.-5:00 p.m. Eastern time</hours>
+					</cntinfo>
+				</proccont>
+			</procstep>
+			<procstep>
+				<procdesc>FMRI staff updated these data with revisions made during the "manatee speed zones" project of 2002.</procdesc>
+				<procdate>2003</procdate>
+				<proccont>
+					<cntinfo>
+						<cntperp>
+							<cntper>GIS Data Librarian</cntper>
+							<cntorg>FWC-FMRI (Florida Fish and Wildlife Conservation Commission-Florida Marine Research Institute)</cntorg>
+						</cntperp>
+						<cntpos>GIS Data Librarian</cntpos>
+						<cntaddr>
+							<addrtype>mailing and physical address</addrtype>
+							<address>
+Florida Marine Research Institute
+100 Eighth  Avenue Southeast
+</address>
+							<city>St. Petersburg</city>
+							<state>Florida</state>
+							<postal>33701</postal>
+							<country>USA</country>
+						</cntaddr>
+						<cntvoice>727-896-8626</cntvoice>
+						<cntfax>727-893-1679</cntfax>
+						<cntemail>gislibrarian@fwc.state.fl.us</cntemail>
+						<hours>8:00 a.m.-5:00 p.m. Eastern time</hours>
+					</cntinfo>
+				</proccont>
+			</procstep>
+			<procstep>
+				<procdesc>FMRI staff updated the linework in Miami-Dade County to include linework digitized in-house for manatee speed zones and another project.  Only major shoreline linework was edited, as well as some interior canalwork that was important for the manatee speed zones.  The revised linework was edgematched to the 1:40,000 shoreline linework, so that no interior canals were lost.  The new linework and polygon attributes have been verified against 1999 DOQQs.</procdesc>
+				<procdate>2/2004</procdate>
+				<proccont>
+					<cntinfo>
+						<cntperp>
+							<cntper>GIS Data Librarian</cntper>
+							<cntorg>FWC-FMRI (Florida Fish and Wildlife Conservation Commission-Florida Marine Research Institute)</cntorg>
+						</cntperp>
+						<cntpos>GIS Data Librarian</cntpos>
+						<cntaddr>
+							<addrtype>mailing and physical address</addrtype>
+							<address>
+Florida Marine Research Institute
+100 Eighth  Avenue Southeast
+</address>
+							<city>St. Petersburg</city>
+							<state>Florida</state>
+							<postal>33701</postal>
+							<country>USA</country>
+						</cntaddr>
+						<cntvoice>727-896-8626</cntvoice>
+						<cntfax>727-893-1679</cntfax>
+						<cntemail>gislibrarian@fwc.state.fl.us</cntemail>
+						<hours>8:00 a.m.-5:00 p.m. Eastern time</hours>
+					</cntinfo>
+				</proccont>
+			</procstep>
+			<procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE">Server=gleason; Service=5153; User=lewis_j; Version=SDE.DEFAULT</srcused><date Sync="TRUE">20041214</date><time Sync="TRUE">11292200</time></procstep></lineage>
+	</dataqual>
+	<spdoinfo>
+		<direct>Vector</direct>
+		<ptvctinf>
+			<sdtsterm Name="Florida_land">
+				<sdtstype>G-polygon</sdtstype>
+				<ptvctcnt>14477</ptvctcnt>
+			</sdtsterm>
+			<esriterm Name="Florida_land"><efeatyp Sync="TRUE">Simple</efeatyp><efeageom Sync="TRUE">Polygon</efeageom><esritopo Sync="TRUE">FALSE</esritopo><efeacnt Sync="TRUE">14477</efeacnt><spindex Sync="TRUE">TRUE</spindex><linrefer Sync="TRUE">FALSE</linrefer></esriterm></ptvctinf>
+	</spdoinfo>
+	<spref>
+		<horizsys>
+			<geodetic>
+				<horizdn>North American Datum of 1983</horizdn>
+				<ellips>Geodetic Reference System 80</ellips>
+				<semiaxis>6378137</semiaxis>
+				<denflat>298.257222</denflat>
+			</geodetic>
+			<cordsysn><geogcsn Sync="TRUE">GCS_North_American_1983</geogcsn></cordsysn><geograph><geogunit Sync="TRUE">Decimal degrees</geogunit><latres Sync="TRUE">0.000000</latres><longres Sync="TRUE">0.000000</longres></geograph></horizsys>
+	</spref>
+	<eainfo>
+		<detailed Name="Florida_land">
+			<attr>
+				<attrlabl>ATTRIBUTE</attrlabl>
+				<attrdef>Description of polygon feature- land or water</attrdef>
+				<attrdomv>
+					<edom>
+						<edomv>Land</edomv>
+					</edom>
+					<edom>
+						<edomv>Water</edomv>
+					</edom>
+				</attrdomv>
+			</attr>
+			<attr><attrlabl Sync="TRUE">FID</attrlabl><attalias Sync="TRUE">FID</attalias><attrtype Sync="TRUE">OID</attrtype><attwidth Sync="TRUE">4</attwidth><atprecis Sync="TRUE">0</atprecis><attscale Sync="TRUE">0</attscale><attrdef Sync="TRUE">Internal feature number.</attrdef><attrdefs Sync="TRUE">ESRI</attrdefs><attrdomv><udom Sync="TRUE">Sequential unique whole numbers that are automatically generated.</udom></attrdomv></attr><attr><attrlabl Sync="TRUE">Shape</attrlabl><attalias Sync="TRUE">Shape</attalias><attrtype Sync="TRUE">Number</attrtype><attwidth Sync="TRUE">10</attwidth><attrdef Sync="TRUE">Feature geometry.</attrdef><attrdefs Sync="TRUE">ESRI</attrdefs><attrdomv><udom Sync="TRUE">Coordinates defining the features.</udom></attrdomv></attr><attr>
+				<attrlabl>SHAPE</attrlabl>
+				<attrdef>Feature geometry.</attrdef>
+				<attrdefs>ESRI</attrdefs>
+				<attrdomv>
+					<udom>Coordinates defining the features.</udom>
+				</attrdomv>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">16</attwidth></attr>
+			<enttyp>
+				<enttypl>FMRI.fl_40k_poly</enttypl>
+				<enttypd>Polygon data set representing the 1:40000 scale statewide Florida shoreline.</enttypd>
+				<enttypt Sync="TRUE">Feature Class</enttypt><enttypc Sync="TRUE">14477</enttypc></enttyp>
+			<attr><attrlabl Sync="TRUE">OBJECTID_1</attrlabl><attalias Sync="TRUE">OBJECTID_1</attalias><attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><atnumdec Sync="TRUE">11</atnumdec></attr><attr><attrlabl Sync="TRUE">SHAPE_AREA</attrlabl><attalias Sync="TRUE">SHAPE_AREA</attalias><attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><attrdef Sync="TRUE">Area of feature in internal units squared.</attrdef><attrdefs Sync="TRUE">ESRI</attrdefs><attrdomv><udom Sync="TRUE">Positive real numbers that are automatically generated.</udom></attrdomv><atnumdec Sync="TRUE">11</atnumdec></attr><attr><attrlabl Sync="TRUE">SHAPE_LEN</attrlabl><attalias Sync="TRUE">SHAPE_LEN</attalias><attrtype Sync="TRUE">Double</attrtype><attwidth Sync="TRUE">19</attwidth><atprecis Sync="TRUE">18</atprecis><attscale Sync="TRUE">11</attscale></attr></detailed>
+		<detailed>
+			<enttyp>
+				<enttypl>FMRI.fl_40k_arc</enttypl>
+				<enttypd>Line data set outlining the 1:40000 scale statewide Florida shoreline.</enttypd>
+			</enttyp>
+			<attr>
+				<attrlabl>OBJECTID</attrlabl>
+				<attrdef>Internal ID used by SDE</attrdef>
+			</attr>
+			<attr>
+				<attrlabl>SHAPE</attrlabl>
+				<attrdef>Feature geometry.</attrdef>
+				<attrdefs>ESRI</attrdefs>
+			</attr>
+			<attr>
+				<attrlabl>SHAPE.LEN</attrlabl>
+				<attrdef>Length of polygon arc (in meters).  Automatically calculated by SDE.</attrdef>
+			</attr>
+			<attr><attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">16</attwidth></attr><attr><atnumdec Sync="TRUE">11</atnumdec></attr><attr><atnumdec Sync="TRUE">11</atnumdec></attr></detailed>
+		<overview>
+			<eaover>This data set is composed of polygons and lines depicting the shoreline of Florida.  Each polygon contains the item ATTRIBUTE, which tells whether it is land or water.</eaover>
+			<eadetcit>U. S. Dept. of Commerce, National Ocean and Atmospheric Service, National Ocean Service. NOAA Nautical Charts at various scales.</eadetcit>
+		</overview>
+	</eainfo>
+	<distinfo>
+		<distrib>
+			<cntinfo>
+				<cntperp>
+					<cntper>GIS Data Librarian</cntper>
+					<cntorg>FWC-FMRI (Florida Fish and Wildlife Conservation Commission-Florida Marine Research Institute)</cntorg>
+				</cntperp>
+				<cntpos>GIS Data Librarian</cntpos>
+				<cntaddr>
+					<addrtype>mailing and physical address</addrtype>
+					<address>
+Florida Marine Research Institute
+100 Eighth  Avenue Southeast
+</address>
+					<city>St. Petersburg</city>
+					<state>Florida</state>
+					<postal>33701</postal>
+					<country>USA</country>
+				</cntaddr>
+				<cntvoice>727-896-8626</cntvoice>
+				<cntfax>727-893-1679</cntfax>
+				<cntemail>gislibrarian@fwc.state.fl.us</cntemail>
+				<hours>8:00 a.m.-5:00 p.m. Eastern time</hours>
+			</cntinfo>
+		</distrib>
+		<distliab>This data set is in the public domain, and the recipient may not assert any proprietary rights thereto nor represent it to anyone as other than a FWC-FMRI produced data set; it is provided "as-is" without warranty of any kind, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose. The user assumes all responsibility for the accuracy and suitability of this data set for a specific application. In no event will the staff of the Florida Marine Research Institute be liable for any damages, including lost profits, lost savings, or other incidental or consequential damages arising from the use of or the inability to use this data set.</distliab>
+		<stdorder>
+			<fees>None. However, persons or organizations requesting information must provide transfer media (CD-ROM only) if FTP is not available and must pay express shipping costs if express shipping is required.</fees>
+			<ordering>Contact GIS Librarian by e-mail, telephone, or letter explaining which products are needed and providing a brief description of how the products will be used. Also, provide name and address of the person or organization requesting the products.</ordering>
+			<turnarnd>Usually within 10 business days, although, complex requests may take longer</turnarnd>
+			<digform><digtinfo><transize Sync="TRUE">13.327</transize><dssize Sync="TRUE">13.327</dssize></digtinfo></digform></stdorder>
+		<stdorder>
+			<fees>None. However, persons or organizations requesting information must provide transfer media (CD-ROM only) if FTP is not available and must pay express shipping costs if express shipping is required.</fees>
+			<ordering>Contact GIS Librarian by e-mail, telephone, or letter explaining which products are needed and providing a brief description of how the products will be used. Also, provide name and address of the person or organization requesting the products.</ordering>
+			<turnarnd>Usually within 10 business days, although, complex requests may take longer</turnarnd>
+			<digform><digtinfo><transize Sync="TRUE">13.327</transize><dssize Sync="TRUE">13.327</dssize></digtinfo></digform></stdorder>
+		<custom>Contact GIS Librarian</custom>
+		<resdesc Sync="TRUE">Downloadable Data</resdesc></distinfo>
+	<metainfo>
+		<metd>20020205</metd>
+		<metrd>20040219</metrd>
+		<metc>
+			<cntinfo>
+				<cntperp>
+					<cntper>GIS Data Librarian</cntper>
+					<cntorg>FWC-FMRI (Florida Fish and Wildlife Conservation Commission-Florida Marine Research Institute)</cntorg>
+				</cntperp>
+				<cntpos>GIS Data Librarian</cntpos>
+				<cntaddr>
+					<addrtype>mailing and physical address</addrtype>
+					<address>
+Florida Marine Research Institute
+100 Eighth  Avenue Southeast
+</address>
+					<city>St. Petersburg</city>
+					<state>Florida</state>
+					<postal>33701</postal>
+					<country>USA</country>
+				</cntaddr>
+				<cntvoice>727-896-8626</cntvoice>
+				<cntfax>727-893-1679</cntfax>
+				<cntemail>gislibrarian@fwc.state.fl.us</cntemail>
+				<hours>8:00 a.m.-5:00 p.m. Eastern time</hours>
+				<cntorgp><cntper>REQUIRED: The person responsible for the metadata information.</cntper><cntorg>REQUIRED: The organization responsible for the metadata information.</cntorg></cntorgp></cntinfo>
+		</metc>
+		<metstdn>FGDC Content Standards for Digital Geospatial Metadata</metstdn>
+		<metstdv>FGDC-STD-001-1998</metstdv>
+		<mettc>local time</mettc>
+		<metac>No restrictions on metadata.</metac>
+		<metuc>Metadata must be distributed with the data set.</metuc>
+		<metsi>
+			<metscs>FMRI-MC</metscs>
+			<metsc>Available</metsc>
+			<metshd>Metadata must be distributed with the data set.</metshd>
+		</metsi>
+		<metextns>
+			<onlink>http://www.esri.com/metadata/esriprof80.html</onlink>
+			<metprof>ESRI Metadata Profile</metprof>
+		</metextns>
+		<metextns>
+			<onlink>http://www.esri.com/metadata/esriprof80.html</onlink>
+			<metprof>ESRI Metadata Profile</metprof>
+		</metextns>
+		<langmeta Sync="TRUE">en</langmeta><metextns><onlink Sync="TRUE">http://www.esri.com/metadata/esriprof80.html</onlink><metprof Sync="TRUE">ESRI Metadata Profile</metprof></metextns></metainfo>
+	<Esri><CreaDate>20190325</CreaDate><CreaTime>14453400</CreaTime><SyncOnce>FALSE</SyncOnce><ModDate>20060614</ModDate><ModTime>11244800</ModTime><SyncDate>20060614</SyncDate><SyncTime>11244800</SyncTime><ArcGISFormat>1.0</ArcGISFormat></Esri><distInfo><distributor><distorTran><onLineSrc><linkage Sync="TRUE">file://\\radner\CedarKey\Common\GIS FIM Universe\Layers\Florida_land.shp</linkage><protocol Sync="TRUE">Local Area Network</protocol><orDesc Sync="TRUE">002</orDesc></onLineSrc><transSize Sync="TRUE">13.327</transSize></distorTran><distorFormat><formatName Sync="TRUE">Shapefile</formatName></distorFormat></distributor></distInfo><dataIdInfo><envirDesc Sync="TRUE">Microsoft Windows XP Version 5.1 (Build 2600) Service Pack 2; ESRI ArcCatalog 9.1.0.722</envirDesc><dataLang><languageCode Sync="TRUE" value="en"></languageCode></dataLang><idCitation><resTitle Sync="TRUE">Florida_land</resTitle><presForm><PresFormCd Sync="TRUE" value="005"></PresFormCd></presForm></idCitation><spatRpType><SpatRepTypCd Sync="TRUE" value="001"></SpatRepTypCd></spatRpType><dataExt><geoEle><GeoBndBox esriExtentType="native"><westBL Sync="TRUE">-87.634769</westBL><eastBL Sync="TRUE">-80.031012</eastBL><northBL Sync="TRUE">31.000999</northBL><southBL Sync="TRUE">24.501656</southBL><exTypeCode Sync="TRUE">1</exTypeCode></GeoBndBox></geoEle></dataExt><geoBox esriExtentType="decdegrees"><westBL Sync="TRUE">-87.634769</westBL><eastBL Sync="TRUE">-80.031012</eastBL><northBL Sync="TRUE">31.000999</northBL><southBL Sync="TRUE">24.501656</southBL><exTypeCode Sync="TRUE">1</exTypeCode></geoBox></dataIdInfo><mdLang><languageCode Sync="TRUE" value="en"></languageCode></mdLang><mdStanName Sync="TRUE">ISO 19115 Geographic Information - Metadata</mdStanName><mdStanVer Sync="TRUE">DIS_ESRI1.0</mdStanVer><mdChar><CharSetCd Sync="TRUE" value="004"></CharSetCd></mdChar><mdHrLv><ScopeCd Sync="TRUE" value="005"></ScopeCd></mdHrLv><mdHrLvName Sync="TRUE">dataset</mdHrLvName><refSysInfo><RefSystem><refSysID><identCode Sync="TRUE">GCS_North_American_1983</identCode></refSysID></RefSystem></refSysInfo><spatRepInfo><VectSpatRep><topLvl><TopoLevCd Sync="TRUE" value="001"></TopoLevCd></topLvl><geometObjs Name="Florida_land"><geoObjTyp><GeoObjTypCd Sync="TRUE" value="001"></GeoObjTypCd></geoObjTyp><geoObjCnt Sync="TRUE">14477</geoObjCnt></geometObjs></VectSpatRep></spatRepInfo><mdDateSt Sync="TRUE">20060614</mdDateSt></metadata>
