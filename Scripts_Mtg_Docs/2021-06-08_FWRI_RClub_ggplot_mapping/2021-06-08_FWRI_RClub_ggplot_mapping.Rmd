@@ -1,7 +1,7 @@
 ---
-title: "Simple, static maps with ggplot"
+title: "Simple, static maps with ggplot2"
 author: "M. Schrandt"
-date: "5/24/2021"
+date: "6/8/2021"
 output:
   html_document: default
   pdf_document: default
@@ -11,7 +11,7 @@ output:
 
 Often we want to plot geospatial data for something simple, like a map that shows occurrence of species counts in our sampling area, static maps for publications, etc.
 
-Today, we'll briefly cover how to get started with simple maps in ggplot. There are many ways to approach this, but I'll try to get you started. We'll make use of the r packages `tidyverse` (which contains `ggplot`), `sf`, and `ggspatial`.
+Today, we'll briefly cover how to get started with simple maps in ggplot. There are many ways to approach this, but I'll try to get you started. We'll make use of the r packages `tidyverse` (which contains `ggplot2`), `sf`, and `ggspatial`.
 
 ```{r setup, message = FALSE}
 ## Load Libraries
@@ -24,7 +24,7 @@ library(ggspatial) # north arrow and scale bar for map
 
 ### Point Data (fish counts)
 
-We'll be using a dataset of fish count data for 7 species of reef fish. The data are from a fisheries-independent monitoring survey of polyhaline seagrass beds along the West Florida Shelf, from 2008 to 2018. These data are available on Mendeley Data: <http://dx.doi.org/10.17632/9bzshm5h46.1>
+We'll be using a dataset of fish count data for 7 species of reef fish. The data are from a fisheries-independent monitoring survey of polyhaline seagrass beds along the West Florida Shelf, from 2008 to 2018. These data are available on Mendeley Data, as a .csv file (with accompanying metadata as a separate file): <http://dx.doi.org/10.17632/9bzshm5h46.1>
 
 They are associated with a publication from FWC:  
 Schrandt, M.N., Shea, C., Kurth, B., Switzer, T. 2021. Amending survey design to improve statistical inferences: monitoring recruitment of juvenile reef fish in the eastern Gulf of Mexico. Fisheries Research 241: 106015. <https://doi.org/10.1016/j.fishres.2021.106015>
@@ -35,6 +35,7 @@ Let's read in our fish data:
 fishdat <- read.csv("Catch_Env_Data_new.csv", header = TRUE, stringsAsFactors = FALSE) %>%
   # reduce our columns; not all are needed
   select(Reference, Scientificname, N, Bay, Gear, Year, Month, Zone, Longitude, Latitude) %>%
+  # reduce to only Tampa Bay (as opposed to all sampled estuaries)
   filter(Bay == "TB")
 
 head(fishdat)
@@ -49,15 +50,15 @@ The detailed state of Florida shoreline shapefile is large, so we're going to su
 Let's read in the Tampa Bay shapefile:
 ```{r readBase}
 # Read in shapefile of TB geo
-TBshore_sf_in <- read_sf(dsn = ".", layer = "tb_geo") %>%
+TBshore_sf_in <- sf::read_sf(dsn = ".", layer = "tb_geo") %>%
   #just keep the geometry column since that's all we need for this exercise (it contains lat/lon)
   select(geometry) %>%
   st_make_valid()
 
 # check coordinate reference system
-st_crs(TBshore_sf_in)
+sf::st_crs(TBshore_sf_in)
 ```
-The coordinate reference system (CRS) is set to NAD83. Location data are collected using GPS, which typically uses the WGS84 CRS (you'll want to check your unit to see how it records). I am going to change the CRS of the base layer so that our points are projecting in the same CRS.
+The coordinate reference system (CRS) is set to NAD83. Location data are collected using GPS, which typically uses the WGS84 (EPSG = 4326) CRS (you'll want to check your unit to see how it records). I am going to transform/change the CRS of the base layer so that our points and base layer are in the same CRS.
 
 ```{r changeCRS}
 TBshore_sf <- st_transform(TBshore_sf_in, crs = 4326)
@@ -85,7 +86,6 @@ base <- ggplot() +
   theme_classic()
 base
 ```
-
 
 ## Add Point Data
 
@@ -121,7 +121,7 @@ p1
 Remember the bounding box I mentioned above? If we want to "zoom in" or limit the map to just the area of the points, we can use the bounding box information instead of the previous limits we provided.
 ```{r}
 #extract the bounding box info from the shapefile
-bbox <- st_bbox(fishdat_sf)
+bbox <- sf::st_bbox(fishdat_sf)
 
 bbox
 
@@ -152,12 +152,15 @@ We can grab a north arrow and scale from the `ggspatial` package
 ```{r}
 p1 +
   #location "br" here refers to "bottom right"
+  # north arrow styles: https://paleolimbot.github.io/ggspatial/reference/north_arrow_orienteering.html
   annotation_north_arrow(location = "br", which_north = "true", style = north_arrow_nautical(),
                          pad_x = unit(0.5, "cm"), pad_y = unit(0.5, "cm")) +
   annotation_scale(location = "br", width_hint = 0.25)
 ```
 
-## You can save your map with `ggsave()`.
+## You can save your map with `ggsave()`
+
+## You can add annotations/text/legends if appropriate
 
 ## Examples of other ggplot features you can use...
 
@@ -176,13 +179,17 @@ p2
 Example: To create a panel graphic, use `facet_grid()` or `facet_wrap()`
 ```{r}
 p3 <- ggplot() +
-  geom_sf(data = TBshore_sf, fill = "darkolivegreen3", size = 0.1) +
+  geom_sf(data = TBshore_sf, fill = "lemonchiffon", size = 0.1) +
   geom_sf(data = fishdat_sf, size = 1.5, aes(color = as.factor(Gear))) +
   facet_wrap(~Gear, ncol = 2) +
   # you will need to re-do the limits
   coord_sf(xlim = c(-82.9, -82.2), ylim = c(27.3, 28.15), expand = FALSE) + 
   theme_classic()
 p3
+
+# How to change ggplot facet labels:
+# https://www.datanovia.com/en/blog/how-to-change-ggplot-facet-labels/
+
 ```
 
 Example: Plot a single species occurrence over time in the trawl (Gear 300), for 2016-2018. This one could use some fine-tuning to make the x-axis legible.
@@ -195,7 +202,7 @@ Lsyn_dat <- fishdat_sf %>%
          Month = as.integer(Month))
 
 p4 <- ggplot() +
-  geom_sf(data = TBshore_sf, fill = "darkolivegreen3", size = 0.1) +
+  geom_sf(data = TBshore_sf, fill = "lemonchiffon", size = 0.1) +
   geom_sf(data = Lsyn_dat, aes(size = N), color = "purple") +
   facet_wrap(~Year) +
   # you will need to re-do the limits
@@ -204,7 +211,7 @@ p4 <- ggplot() +
 p4
 ```
 
-Example: Labeling boundaries/outlines. To reproduce the map (Figure 1) from Schrandt et al. 2021,  that these data are associated with, use the following code
+Example: Labeling boundaries/outlines. To reproduce the map (Figure 1) from Schrandt et al. 2021 (referenced at the beginning of this document),  that these data are associated with, use the following code
 ```{r}
 #### Prep the base layer shape files ####
 # Read in shapefile of Florida land
@@ -243,7 +250,7 @@ WIMap <- ggplot() +
                          pad_x = unit(0.35, "cm"), pad_y = unit(0.65, "cm")) +
   annotation_scale(location = "bl", width_hint = 0.25,
                    height = unit(0.1, "cm")) +
-  #remove the background grid color
+  #remove the background grid color, set legend position, etc.
   theme(panel.grid.major = element_blank(),
         panel.background = element_blank(),
         panel.border = element_rect(color = "black", fill = NA),
@@ -258,7 +265,7 @@ WIMap <- ggplot() +
         #specify margins around the ggplot
         plot.margin=grid::unit(c(2,2,2,2), "mm")) +
   labs(y = "", x = "", color = "West Florida Shelf Estuary") +
-  #add in bay-specific labels
+  #add in bay-specific labels with annotate()
   annotate(geom = "text", x = -85.9, y = 29.95, label = "SA", size = 3) +
   annotate(geom = "text", x = -84.6, y = 29.55, label = "AP", size = 3) +
   annotate(geom = "text", x = -83.9, y = 29.75, label = "BB", size = 3) +
@@ -269,8 +276,14 @@ WIMap
 
 ## Other Resources
 
+ggplot2: Elegant graphics for data analysis, within the ggplot2 online book (<https://ggplot2-book.org/index.html>)
+<https://ggplot2-book.org/maps.html>
+
 There are a lot of spatial references for R. Here is another one for sf and ggplot, specifically:
 <https://www.jla-data.net/eng/merging-geometry-of-sf-objects-in-r/>
+
+Drawing beautiful maps programmatically:
+<https://r-spatial.org/r/2018/10/25/ggplot2-sf.html>
 
 And the R Spatial Workshop_EPA: <https://mhweber.github.io/AWRA_2020_R_Spatial/>
 
