@@ -15,3 +15,4 @@ A collection of codes and other resources for the informal FWRI R club/users gro
 + Dynamic Documents with R and knitr Online https://yihui.org/knitr/
 + Beginner Git Commands https://blog.prototypr.io/git-for-beginners-12-commands-you-need-to-know-e084cce9cc94
 + R Spatial Workshop_EPA: https://mhweber.github.io/AWRA_2020_R_Spatial/
++ ggplot2: Elegant Graphics for Data Analysis: https://ggplot2-book.org/index.html
