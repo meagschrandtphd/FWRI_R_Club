@@ -29,6 +29,8 @@ The dataset we are using is from the data paper <https://esajournals.onlinelibra
 library(tidyverse)
 library(lubridate)
 library(sf)
+# edit May 28, 2021 - install mapview 2.9.9 from github and then knitting to html will work
+remotes::install_github("r-spatial/mapview")
 library(mapview)
 library(leaflet)
 library(leafpop) # for popups in mapviews
